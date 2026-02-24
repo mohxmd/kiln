@@ -1,0 +1,72 @@
+{
+  "name": "kiln",
+  "version": "0.1.0",
+  "description": "Compile framework apps into native Bun executables.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./cli": {
+      "types": "./dist/cli.d.ts",
+      "default": "./dist/cli.js"
+    }
+  },
+  "bin": {
+    "kiln": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "clean": "rm -rf dist",
+    "build": "rm -rf dist && tsc --project tsconfig.json",
+    "check-types": "tsc --project tsconfig.json --noEmit",
+    "prepublishOnly": "tsc --project tsconfig.json"
+  },
+  "keywords": [
+    "nextjs",
+    "bun",
+    "compiler",
+    "adapter",
+    "standalone",
+    "kiln"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mohxmd/kiln.git",
+    "directory": "packages/kiln"
+  },
+  "bugs": {
+    "url": "https://github.com/mohxmd/kiln/issues"
+  },
+  "homepage": "https://github.com/mohxmd/kiln#readme",
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=20",
+    "bun": ">=1.0"
+  },
+  "sideEffects": false,
+  "devDependencies": {
+    "@types/node": "^25.3.0",
+    "typescript": "^5.9.3"
+  },
+  "peerDependencies": {
+    "next": ">=15"
+  },
+  "peerDependenciesMeta": {
+    "next": {
+      "optional": true
+    }
+  },
+  "dependencies": {}
+}
