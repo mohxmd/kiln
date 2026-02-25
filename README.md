@@ -118,3 +118,8 @@ import { compileApp, compileStandalone, generateEntryPoint } from "kiln";
 | `compileApp(opts)` | End-to-end: detect framework → generate → compile |
 | `generateEntryPoint(opts)` | Generate asset map + server entry using adapter |
 | `compileStandalone(opts)` | Run `bun build --compile` only |
+
+## Acknowledgements
+
+The Next.js compilation logic in this project was heavily inspired by and derived from [next-bun-compile](https://github.com/ramonmalcolm10/next-bun-compile). A huge thanks to the author for paving the way for running standalone Next.js apps natively in Bun!
+
