@@ -63,12 +63,22 @@ kiln -o ./server-win.exe --target bun-windows-x64
 
 ## transpilePackages (Next.js)
 
-The Next adapter merges transpile packages from four sources (de-duplicated):
+The Next.js adapter automatically detects packages that need to be transpiled (e.g., UI libraries in a monorepo). It looks for them in this order:
 
-1. `nextConfig.transpilePackages`
-2. Built-in defaults (`pino`, `pino-pretty`)
-3. `nextConfig.nextRuntimeCompiler.transpilePackages`
-4. Env var `NEXT_RUNTIME_COMPILER_TRANSPILE_PACKAGES` (comma-separated)
+1. Standard Next.js `transpilePackages` in `next.config.js` [(see docs)](https://nextjs.org/docs/app/api-reference/config/next-config-js/transpilePackages)
+2. Custom `nextConfig.nextRuntimeCompiler.transpilePackages`
+3. Environment variable `NEXT_RUNTIME_COMPILER_TRANSPILE_PACKAGES` (comma-separated)
+
+Example `next.config.js`:
+
+```javascript
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  transpilePackages: ['@repo/ui-components', '@repo/design-system'],
+}
+
+module.exports = nextConfig
+```
 
 ## CDN / assetPrefix
 
