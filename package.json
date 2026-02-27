@@ -29,7 +29,7 @@
     "clean": "rm -rf dist",
     "build": "rm -rf dist && tsc --project tsconfig.json",
     "check-types": "tsc --project tsconfig.json --noEmit",
-    "prepublishOnly": "tsc --project tsconfig.json"
+    "prepublishOnly": "bun run build"
   },
   "keywords": [
     "nextjs",
