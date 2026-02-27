@@ -1,5 +1,5 @@
 {
-  "name": "kiln",
+  "name": "kiln-compiler",
   "version": "0.1.0",
   "description": "Compile framework apps into native Bun executables.",
   "license": "MIT",
