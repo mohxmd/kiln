@@ -10,6 +10,29 @@ import { listAdapters } from "./adapter/registry.js";
 import { compileApp } from "./core/compile-app.js";
 import { logError, logInfo } from "./utils/log.js";
 
+function printHelp(): void {
+  console.log(`
+kiln ðŸ”¥ - Compile framework apps into single native Bun executables
+
+Usage:
+  kiln [options] [-- bun-build-flags...]
+
+Options:
+  -p, --project <dir>      Project root directory (default: ".")
+  -o, --out <path>         Output binary path (default: "./server")
+  -f, --framework <name>   Framework adapter to use (auto-detected if omitted)
+  -t, --target <target>    Cross-compilation target (e.g. bun-linux-x64, bun-windows-x64)
+  --list-adapters          List all registered framework adapters
+  -h, --help               Show this help message
+
+Examples:
+  kiln
+  kiln -o ./dist/app
+  kiln -o ./server-linux --target bun-linux-x64
+  kiln -p ./apps/web -f next
+`);
+}
+
 function parseArgs(argv: string[]): {
   projectDir: string;
   outputFile?: string;
@@ -25,18 +48,47 @@ function parseArgs(argv: string[]): {
     const arg = argv[i];
     if (!arg) continue;
 
+    if (arg === "--help" || arg === "-h") {
+      printHelp();
+      process.exit(0);
+    }
     if (arg === "--project" || arg === "-p") {
-      projectDir = argv[i + 1] ?? ".";
+      const val = argv[i + 1];
+      if (!val || val.startsWith("-")) {
+        logError("--project requires a directory path");
+        process.exit(1);
+      }
+      projectDir = val;
       i += 1;
       continue;
     }
     if (arg === "--out" || arg === "-o") {
-      outputFile = argv[i + 1];
+      const val = argv[i + 1];
+      if (!val || val.startsWith("-")) {
+        logError("--out requires an output path");
+        process.exit(1);
+      }
+      outputFile = val;
       i += 1;
       continue;
     }
     if (arg === "--framework" || arg === "-f") {
-      framework = argv[i + 1];
+      const val = argv[i + 1];
+      if (!val || val.startsWith("-")) {
+        logError("--framework requires an adapter name");
+        process.exit(1);
+      }
+      framework = val;
+      i += 1;
+      continue;
+    }
+    if (arg === "--target" || arg === "-t") {
+      const val = argv[i + 1];
+      if (!val || val.startsWith("-")) {
+        logError("--target requires a compilation target (e.g. bun-linux-x64)");
+        process.exit(1);
+      }
+      extraArgs.push(`--target=${val}`);
       i += 1;
       continue;
     }

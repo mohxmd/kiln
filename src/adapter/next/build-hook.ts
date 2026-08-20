@@ -42,7 +42,7 @@ function parseEnvTranspilePackages(): string[] {
   if (!raw) return [];
   return raw
     .split(",")
-    .map((item) => item.trim())
+    .map((item: string) => item.trim())
     .filter(Boolean);
 }
 
@@ -67,7 +67,7 @@ export function createNextBuildHook(): NextBuildHook {
     modifyConfig(config, context) {
       if (!context) {
         throw new Error(
-          "kiln: Next 16+ build adapter context is required.",
+          "[kiln] Next 16+ build adapter context is required.",
         );
       }
 
@@ -75,7 +75,7 @@ export function createNextBuildHook(): NextBuildHook {
 
       if (process.argv.includes("--webpack")) {
         throw new Error(
-          "kiln: webpack mode is not supported. Use Turbopack build.",
+          "[kiln] webpack mode is not supported. Use Turbopack build.",
         );
       }
 

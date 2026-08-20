@@ -1,27 +1,42 @@
 # kiln 🔥
 
-Compile framework apps into a single native executable via [Bun](https://bun.sh).
+Compile modern framework apps into a single native executable via [Bun](https://bun.sh).
 
-> **Supported**: Next.js · **Planned**: React Router, SvelteKit, TanStack Start, Deno runtime
+> **Supported**: Next.js (App Router & Pages Router) · **Planned**: React Router / Remix, SvelteKit, TanStack Start, Astro, Nitro
+
+---
+
+## Features
+
+- 🚀 **100% Self-Contained Binary**: Employs single-file native executables with all static assets, SSR chunks, and server runtimes embedded.
+- ⚡ **Instant Cold Starts**: Fast-path SHA-256 build manifest check (`.kiln-extracted`) skips extraction on subsequent boots.
+- 🐳 **Docker Optimized**: Pre-extract assets during `docker build` using `./server --extract` for sub-10ms container cold starts.
+- 🗜️ **Optimized Binary Footprint**: Prunes dead build artifacts (sourcemaps, dev builds, webpack internals) and Gzip-compresses embedded runtime files.
+- 🧩 **Turbopack & Monorepo Ready**: In-place Turbopack alias resolution and runtime `Module._resolveFilename` fallback hook.
+- 🌐 **Universal Architecture**: Plugin-based `FrameworkAdapter` contract to compile any web framework.
+
+---
 
 ## Install
 
 ```bash
-npm install kiln
+npm install -D kiln-compiler
 # or
-bun add kiln
+bun add -d kiln-compiler
 ```
+
+---
 
 ## Quick Start (Next.js)
 
-### 1. Configure the build adapter
+### 1. Configure the build adapter in `next.config.ts`
 
 ```ts
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   experimental: {
-    adapterPath: import.meta.resolve("kiln"),
+    adapterPath: import.meta.resolve("kiln-compiler"),
   },
 };
 
@@ -37,10 +52,12 @@ next build && kiln
 ### 3. Run the binary
 
 ```bash
-./server          # single file, no node_modules needed
+./server          # single standalone file, no node_modules needed
 ```
 
-## CLI
+---
+
+## CLI Options
 
 ```bash
 kiln [options] [-- bun-build-flags...]
@@ -51,7 +68,9 @@ kiln [options] [-- bun-build-flags...]
 | `--project, -p` | `.` | Project root directory |
 | `--out, -o` | `./server` | Output binary path |
 | `--framework, -f` | _(auto-detect)_ | Framework adapter to use |
-| `--list-adapters` | | Show registered adapters |
+| `--target, -t` | _(host platform)_ | Cross-compile target (e.g. `bun-linux-x64`, `bun-windows-x64`) |
+| `--list-adapters` | | Show registered framework adapters |
+| `--help, -h` | | Show help menu |
 
 ### Cross-compilation
 
@@ -61,36 +80,42 @@ kiln -o ./server-arm     --target bun-linux-arm64
 kiln -o ./server-win.exe --target bun-windows-x64
 ```
 
-## transpilePackages (Next.js)
+---
 
-The Next.js adapter automatically detects packages that need to be transpiled (e.g., UI libraries in a monorepo). It looks for them in this order:
+## Environment Variables (Runtime)
 
-1. Standard Next.js `transpilePackages` in `next.config.js` [(see docs)](https://nextjs.org/docs/app/api-reference/config/next-config-js/transpilePackages)
-2. Custom `nextConfig.nextRuntimeCompiler.transpilePackages`
-3. Environment variable `NEXT_RUNTIME_COMPILER_TRANSPILE_PACKAGES` (comma-separated)
+| Variable | Default | Description |
+|---|---|---|
+| `PORT` | `3000` | Server HTTP port |
+| `HOSTNAME` | `0.0.0.0` | Server hostname |
+| `KEEP_ALIVE_TIMEOUT` | — | HTTP keep-alive timeout in milliseconds |
+| `KILN_RUNTIME_DIR` | Binary directory | Runtime files extraction root (e.g. `/tmp/app` for RAM-backed tmpfs) |
 
-Example `next.config.js`:
+---
 
-```javascript
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  transpilePackages: ['@repo/ui-components', '@repo/design-system'],
-}
+## Docker Layer Caching (`--extract`)
 
-module.exports = nextConfig
+To achieve instant sub-10ms container cold starts, pre-materialize runtime files during image build:
+
+```dockerfile
+FROM oven/bun:alpine AS runner
+WORKDIR /app
+COPY server /app/server
+RUN ["/app/server", "--extract"]
+
+EXPOSE 3000
+CMD ["/app/server"]
 ```
 
-## CDN / assetPrefix
-
-When `assetPrefix` is set, static assets (`/_next/static/*`) are assumed CDN-hosted and **not** embedded. `public/*` is always embedded.
+---
 
 ## Adding a New Framework Adapter
 
 Implement the `FrameworkAdapter` interface and register it:
 
 ```ts
-import type { FrameworkAdapter } from "kiln";
-import { registerAdapter } from "kiln";
+import type { FrameworkAdapter } from "kiln-compiler";
+import { registerAdapter } from "kiln-compiler";
 
 const myAdapter: FrameworkAdapter = {
   framework: "my-framework",
@@ -99,6 +124,7 @@ const myAdapter: FrameworkAdapter = {
   getStandaloneDir: (dir) => join(dir, "build/server"),
   getDistDir: (dir) => join(dir, "build"),
   getStaticAssetConfig: () => ({ dir: "client", urlPrefix: "/assets" }),
+  getRuntimeFiles: (ctx) => [/* server files to embed */],
   getStubs: () => [],
   getBuildDefines: () => [],
   generateServerEntry: (ctx) => `/* runtime entry code */`,
@@ -107,10 +133,12 @@ const myAdapter: FrameworkAdapter = {
 registerAdapter({ framework: "my-framework", create: () => myAdapter });
 ```
 
+---
+
 ## Programmatic API
 
 ```ts
-import { compileApp, compileStandalone, generateEntryPoint } from "kiln";
+import { compileApp, compileStandalone, generateEntryPoint } from "kiln-compiler";
 ```
 
 | Function | Description |
@@ -119,7 +147,8 @@ import { compileApp, compileStandalone, generateEntryPoint } from "kiln";
 | `generateEntryPoint(opts)` | Generate asset map + server entry using adapter |
 | `compileStandalone(opts)` | Run `bun build --compile` only |
 
+---
+
 ## Acknowledgements
 
-The Next.js compilation logic in this project was heavily inspired by and derived from [next-bun-compile](https://github.com/ramonmalcolm10/next-bun-compile). A huge thanks to the author for paving the way for running standalone Next.js apps natively in Bun!
-
+The Next.js runtime compilation patterns and Turbopack compatibility techniques in this project were inspired by and derived from [next-bun-compile](https://github.com/ramonmalcolm10/next-bun-compile).

@@ -9,7 +9,7 @@ export function toPosixPath(path: string): string {
 }
 
 export function toSafeAssetVariableName(filePath: string): string {
-  const hash = createHash("md5").update(filePath).digest("hex").slice(0, 6);
+  const hash = createHash("sha256").update(filePath).digest("hex").slice(0, 6);
   const safePrefix = filePath.replace(/[^a-zA-Z0-9]/g, "_").slice(0, 40);
   return `asset_${safePrefix}_${hash}`;
 }

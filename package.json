@@ -26,10 +26,10 @@
     "LICENSE"
   ],
   "scripts": {
-    "clean": "rm -rf dist",
-    "build": "rm -rf dist && tsc --project tsconfig.json",
+    "clean": "node -e \"require('fs').rmSync('dist', { recursive: true, force: true })\"",
+    "build": "npm run clean && tsc --project tsconfig.json",
     "check-types": "tsc --project tsconfig.json --noEmit",
-    "prepublishOnly": "bun run build"
+    "prepublishOnly": "npm run build"
   },
   "keywords": [
     "nextjs",
@@ -67,6 +67,5 @@
     "next": {
       "optional": true
     }
-  },
-  "dependencies": {}
+  }
 }

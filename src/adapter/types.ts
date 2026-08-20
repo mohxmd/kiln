@@ -2,7 +2,7 @@
  * Generic adapter contracts for multi-framework compilation support.
  *
  * Implement the FrameworkAdapter interface to add support for a new framework
- * (React Router, SvelteKit, TanStack Start, etc.).
+ * (Next.js, React Router, SvelteKit, TanStack Start, Nitro, etc.).
  */
 
 export interface StubModule {
@@ -21,6 +21,13 @@ export interface EmbeddedAsset {
   absolutePath: string;
   relativePath: string;
   urlPath: string;
+  /** Whether this asset is part of the server-side runtime extraction */
+  isRuntime?: boolean;
+}
+
+export interface RuntimeTransformResult {
+  rewrittenChunks?: string[];
+  aliases?: Record<string, string>;
 }
 
 export interface ServerEntryContext {
@@ -29,6 +36,10 @@ export interface ServerEntryContext {
   projectDir: string;
   assets: EmbeddedAsset[];
   assetPrefix: string;
+  buildStamp: string;
+  rewrittenChunks?: string[];
+  aliases?: Record<string, string>;
+  gzippedAssetUrls?: string[];
 }
 
 export interface FrameworkAdapter {
@@ -49,11 +60,25 @@ export interface FrameworkAdapter {
   /** Static asset directory and URL prefix config */
   getStaticAssetConfig(): StaticAssetConfig;
 
+  /** Collect framework server runtime files (e.g. server chunks, node_modules, manifests) */
+  getRuntimeFiles?(ctx: {
+    standaloneDir: string;
+    distDir: string;
+    projectDir: string;
+  }): EmbeddedAsset[];
+
   /** Stub modules to write before compilation */
   getStubs(): readonly StubModule[];
 
   /** Extra --define key=value pairs for bun build */
   getBuildDefines(): readonly string[];
+
+  /** Optional AST / chunk transformation step before embedding */
+  transformStandalone?(ctx: {
+    standaloneDir: string;
+    distDir: string;
+    projectDir: string;
+  }): RuntimeTransformResult | void;
 
   /** Generate the runtime server entry source code */
   generateServerEntry(ctx: ServerEntryContext): string;

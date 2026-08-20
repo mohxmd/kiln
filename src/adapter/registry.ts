@@ -2,12 +2,19 @@
  * Framework adapter registry with auto-detection support.
  */
 
+import { createNextAdapter } from "./next/index.js";
 import type {
   FrameworkAdapter,
   FrameworkAdapterRegistration,
 } from "./types.js";
 
 const registry = new Map<string, FrameworkAdapterRegistration>();
+
+// Register built-in adapters
+registerAdapter({
+  framework: "next",
+  create: () => createNextAdapter(),
+});
 
 export function registerAdapter(
   registration: FrameworkAdapterRegistration,
