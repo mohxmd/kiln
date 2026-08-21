@@ -1,4 +1,4 @@
-﻿# kiln
+# kiln
 
 [![npm version](https://img.shields.io/npm/v/kiln-compiler.svg?style=flat-square&color=CB3837)](https://www.npmjs.com/package/kiln-compiler)
 [![license](https://img.shields.io/npm/l/kiln-compiler.svg?style=flat-square&color=blue)](https://github.com/mohxmd/kiln/blob/main/LICENSE)
@@ -15,7 +15,7 @@ No `node_modules` or Node.js runtime installation required on the target server.
 
 | Framework | Status | Adapter / Engine |
 |---|---|---|
-| **Next.js (App & Pages Router)** | Supported (15+ & 16) | Built-in `experimental.adapterPath` hook |
+| **Next.js (App & Pages Router)** | Supported (15+ & 16) | Native `adapterPath` hook |
 | **SvelteKit** | Planned | Adapter in roadmap |
 | **React Router / Remix** | Planned | Adapter in roadmap |
 | **TanStack Start** | Planned | Adapter in roadmap |
@@ -29,7 +29,7 @@ No `node_modules` or Node.js runtime installation required on the target server.
 | Directory | Package | Description |
 |---|---|---|
 | [`packages/kiln`](packages/kiln) | [`kiln-compiler`](https://www.npmjs.com/package/kiln-compiler) | Core compiler CLI, framework adapters & standalone generator |
-| [`examples/with-nextjs`](examples/with-nextjs) | — | Next.js 16 App Router live demo & integration test |
+| [`examples/with-nextjs`](examples/with-nextjs) | `with-nextjs` | Next.js 16 App Router live demo & integration test |
 
 ---
 
@@ -38,7 +38,9 @@ No `node_modules` or Node.js runtime installation required on the target server.
 Install in your framework app:
 
 ```bash
-pnpm add -D kiln-compiler
+bun add -d kiln-compiler
+# or
+npm install -D kiln-compiler
 ```
 
 Configure `next.config.ts`:
@@ -47,9 +49,7 @@ Configure `next.config.ts`:
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  experimental: {
-    adapterPath: import.meta.resolve("kiln-compiler"),
-  },
+  adapterPath: import.meta.resolve("kiln-compiler"),
 };
 
 export default nextConfig;
@@ -58,8 +58,8 @@ export default nextConfig;
 Build and compile into a native binary:
 
 ```bash
-next build && kiln
-./server
+next build && kiln -o ./bin/app
+./bin/app
 ```
 
 > For full documentation, CLI options, cross-compilation, and Docker optimization, see the **[`packages/kiln` README](packages/kiln)**.
@@ -74,18 +74,18 @@ git clone https://github.com/mohxmd/kiln.git
 cd kiln
 
 # 2. Install dependencies across workspace
-pnpm install
+bun install
 
 # 3. Run unit test suite (via Bun)
-pnpm test
+bun test
 
 # 4. Build the core package
-pnpm build
+bun run build
 
 # 5. Test the live Next.js example
 cd examples/with-nextjs
-pnpm run build:compile
-./server
+bun run build:compile
+./bin/app
 ```
 
 ---
@@ -93,9 +93,3 @@ pnpm run build:compile
 ## License
 
 [MIT](LICENSE) © [Mohamed](https://github.com/mohxmd)
-
----
-
-## Acknowledgements
-
-The Next.js runtime compilation patterns and Turbopack compatibility techniques in this project were inspired by and derived from [next-bun-compile](https://github.com/ramonmalcolm10/next-bun-compile).
