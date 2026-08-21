@@ -4,6 +4,7 @@
 
 import { createAstroAdapter } from "./astro/index.js";
 import { createNextAdapter } from "./next/index.js";
+import { createTanStackAdapter } from "./tanstack/index.js";
 import type {
   FrameworkAdapter,
   FrameworkAdapterRegistration,
@@ -20,6 +21,11 @@ registerAdapter({
 registerAdapter({
   framework: "astro",
   create: () => createAstroAdapter(),
+});
+
+registerAdapter({
+  framework: "tanstack",
+  create: () => createTanStackAdapter(),
 });
 
 export function registerAdapter(

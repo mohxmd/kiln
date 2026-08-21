@@ -26,6 +26,7 @@ export default defineConfig({
           items: [
             { label: "Next.js", slug: "frameworks/nextjs" },
             { label: "Astro", slug: "frameworks/astro" },
+            { label: "TanStack Start", slug: "frameworks/tanstack" },
             { label: "Roadmap & Others", slug: "frameworks/roadmap" },
           ],
         },
