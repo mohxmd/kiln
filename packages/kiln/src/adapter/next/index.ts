@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Next.js framework adapter implementation.
  */
 
@@ -170,8 +170,8 @@ const path = require("path");
 const fs = require("fs");
 const Module = require("module");
 
-const baseDir = process.env.KILN_RUNTIME_DIR || process.env.NBC_RUNTIME_DIR
-  ? path.resolve(process.env.KILN_RUNTIME_DIR || process.env.NBC_RUNTIME_DIR)
+const baseDir = process.env.KILN_RUNTIME_DIR
+  ? path.resolve(process.env.KILN_RUNTIME_DIR)
   : path.dirname(process.execPath);
 
 fs.mkdirSync(baseDir, { recursive: true });

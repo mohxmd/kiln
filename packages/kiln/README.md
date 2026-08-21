@@ -1,33 +1,43 @@
-# kiln 🔥
+﻿# kiln-compiler
 
-Compile modern framework apps into a single native executable via [Bun](https://bun.sh).
+[![npm version](https://img.shields.io/npm/v/kiln-compiler.svg?style=flat-square&color=CB3837)](https://www.npmjs.com/package/kiln-compiler)
+[![license](https://img.shields.io/npm/l/kiln-compiler.svg?style=flat-square&color=blue)](https://github.com/mohxmd/kiln/blob/main/LICENSE)
+[![Bun](https://img.shields.io/badge/Bun-%3E%3D1.0-FBF0DF?style=flat-square&logo=bun&logoColor=black)](https://bun.sh)
+[![Node](https://img.shields.io/badge/Node-%3E%3D20-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org)
 
-> **Supported**: Next.js (App Router & Pages Router) · **Planned**: React Router / Remix, SvelteKit, TanStack Start, Astro, Nitro
+**Compile modern web framework applications into single self-contained native executables via [Bun](https://bun.sh).**
+
+> **Supported**: Next.js 15+ & 16 (App Router & Pages Router) • **Planned**: SvelteKit, React Router, TanStack Start, Astro, Nitro
 
 ---
 
 ## Features
 
-- 🚀 **100% Self-Contained Binary**: Employs single-file native executables with all static assets, SSR chunks, and server runtimes embedded.
-- ⚡ **Instant Cold Starts**: Fast-path SHA-256 build manifest check (`.kiln-extracted`) skips extraction on subsequent boots.
-- 🐳 **Docker Optimized**: Pre-extract assets during `docker build` using `./server --extract` for sub-10ms container cold starts.
-- 🗜️ **Optimized Binary Footprint**: Prunes dead build artifacts (sourcemaps, dev builds, webpack internals) and Gzip-compresses embedded runtime files.
-- 🧩 **Turbopack & Monorepo Ready**: In-place Turbopack alias resolution and runtime `Module._resolveFilename` fallback hook.
-- 🌐 **Universal Architecture**: Plugin-based `FrameworkAdapter` contract to compile any web framework.
+- **100% Self-Contained Binary**: Compiles SSR code, runtime chunks, and static assets into a single native binary. No `node_modules` or Node.js runtime needed on the host.
+- **Instant Cold Starts (<10ms)**: Fast-path SHA-256 build manifest check (`.kiln-extracted`) skips extraction on subsequent boots.
+- **Docker Optimized**: Pre-extract assets during `docker build` using `./server --extract` for instant container startup and zero runtime disk overhead.
+- **Optimized Binary Footprint**: Prunes dead build artifacts (sourcemaps, dev bundles, Webpack compiler engines) and Gzip-compresses embedded server assets.
+- **Turbopack & Monorepo Ready**: Scans and rewrites 16-hex mangled Turbopack requires with runtime `Module._resolveFilename` fallback hooks.
+- **Universal Architecture**: Modular `FrameworkAdapter` contract allows compiling any web framework with zero compiler core modifications.
 
 ---
 
-## Install
+## Installation
 
 ```bash
-npm install -D kiln-compiler
-# or
+# Using pnpm
+pnpm add -D kiln-compiler
+
+# Using bun
 bun add -d kiln-compiler
+
+# Using npm
+npm install -D kiln-compiler
 ```
 
 ---
 
-## Quick Start (Next.js)
+## Quick Start (Next.js 15+ / 16)
 
 ### 1. Configure the build adapter in `next.config.ts`
 
@@ -49,10 +59,10 @@ export default nextConfig;
 next build && kiln
 ```
 
-### 3. Run the binary
+### 3. Run the standalone binary
 
 ```bash
-./server          # single standalone file, no node_modules needed
+./server          # Starts production server on http://0.0.0.0:3000
 ```
 
 ---
@@ -65,14 +75,16 @@ kiln [options] [-- bun-build-flags...]
 
 | Flag | Default | Description |
 |---|---|---|
-| `--project, -p` | `.` | Project root directory |
-| `--out, -o` | `./server` | Output binary path |
-| `--framework, -f` | _(auto-detect)_ | Framework adapter to use |
-| `--target, -t` | _(host platform)_ | Cross-compile target (e.g. `bun-linux-x64`, `bun-windows-x64`) |
-| `--list-adapters` | | Show registered framework adapters |
-| `--help, -h` | | Show help menu |
+| `-p, --project <dir>` | `.` | Project root directory containing build output |
+| `-o, --out <path>` | `./server` | Output executable path |
+| `-f, --framework <name>` | *(auto-detect)* | Framework adapter to use (e.g. `next`) |
+| `-t, --target <target>` | *(host platform)* | Cross-compilation target (e.g. `bun-linux-x64`, `bun-windows-x64`) |
+| `--list-adapters` | | Show all registered framework adapters |
+| `-h, --help` | | Show CLI help menu |
 
-### Cross-compilation
+### Cross-Compilation (Build for any OS)
+
+Compile for Linux servers or ARM architecture without Docker:
 
 ```bash
 kiln -o ./server-linux   --target bun-linux-x64
@@ -82,28 +94,33 @@ kiln -o ./server-win.exe --target bun-windows-x64
 
 ---
 
-## Environment Variables (Runtime)
+## Runtime Environment Variables
 
 | Variable | Default | Description |
 |---|---|---|
 | `PORT` | `3000` | Server HTTP port |
-| `HOSTNAME` | `0.0.0.0` | Server hostname |
+| `HOSTNAME` | `0.0.0.0` | Server bind hostname |
 | `KEEP_ALIVE_TIMEOUT` | — | HTTP keep-alive timeout in milliseconds |
 | `KILN_RUNTIME_DIR` | Binary directory | Runtime files extraction root (e.g. `/tmp/app` for RAM-backed tmpfs) |
 
 ---
 
-## Docker Layer Caching (`--extract`)
+## Docker Deployment (`--extract`)
 
 To achieve instant sub-10ms container cold starts, pre-materialize runtime files during image build:
 
 ```dockerfile
 FROM oven/bun:alpine AS runner
 WORKDIR /app
+
+# Copy the compiled standalone binary
 COPY server /app/server
+
+# Pre-extract runtime files into the container layer
 RUN ["/app/server", "--extract"]
 
 EXPOSE 3000
+ENV PORT=3000
 CMD ["/app/server"]
 ```
 
@@ -124,10 +141,9 @@ const myAdapter: FrameworkAdapter = {
   getStandaloneDir: (dir) => join(dir, "build/server"),
   getDistDir: (dir) => join(dir, "build"),
   getStaticAssetConfig: () => ({ dir: "client", urlPrefix: "/assets" }),
-  getRuntimeFiles: (ctx) => [/* server files to embed */],
   getStubs: () => [],
   getBuildDefines: () => [],
-  generateServerEntry: (ctx) => `/* runtime entry code */`,
+  generateServerEntry: (ctx) => `/* runtime server code */`,
 };
 
 registerAdapter({ framework: "my-framework", create: () => myAdapter });
@@ -143,12 +159,12 @@ import { compileApp, compileStandalone, generateEntryPoint } from "kiln-compiler
 
 | Function | Description |
 |---|---|
-| `compileApp(opts)` | End-to-end: detect framework → generate → compile |
-| `generateEntryPoint(opts)` | Generate asset map + server entry using adapter |
-| `compileStandalone(opts)` | Run `bun build --compile` only |
+| `compileApp(options)` | End-to-end orchestration: detect framework → generate entrypoint → compile binary |
+| `generateEntryPoint(options)` | Generates asset mapping manifest and server entrypoint using adapter |
+| `compileStandalone(options)` | Runs `bun build --compile` against standalone entrypoint |
 
 ---
 
-## Acknowledgements
+## License
 
-The Next.js runtime compilation patterns and Turbopack compatibility techniques in this project were inspired by and derived from [next-bun-compile](https://github.com/ramonmalcolm10/next-bun-compile).
+[MIT](LICENSE) © [Mohamed](https://github.com/mohxmd)

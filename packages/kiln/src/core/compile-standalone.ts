@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Runs Bun native compilation against generated standalone entrypoint.
  */
 
@@ -19,7 +19,7 @@ export function compileStandalone(options: CompileStandaloneOptions): void {
   const defineArgs = extraDefines.flatMap((d) => ["--define", d]);
 
   // Support cross-compilation target via environment variable if not already supplied
-  const targetEnv = process.env.KILN_TARGET || process.env.NBC_TARGET;
+  const targetEnv = process.env.KILN_TARGET;
   const hasTargetFlag = extraArgs.some((arg) => arg === "--target" || arg.startsWith("--target="));
   const targetArgs = (!hasTargetFlag && targetEnv) ? [`--target=${targetEnv}`] : [];
 
