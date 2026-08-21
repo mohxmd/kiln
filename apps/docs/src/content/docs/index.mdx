@@ -1,40 +1,43 @@
 ---
-title: Welcome to Starlight
-description: Get started building your docs site with Starlight.
-template: splash # Remove or comment out this line to display the site sidebar on this page.
+title: Kiln
+description: Compile modern web applications into single native Bun executables.
+template: splash
 hero:
-  tagline: Congrats on setting up a new Starlight project!
+  tagline: The universal framework compiler. Turn Next.js, Astro, and web apps into single, self-contained native executable binaries via Bun.
   image:
     file: ../../assets/houston.webp
   actions:
-    - text: Example Guide
-      link: /guides/example/
+    - text: Quick Start
+      link: /getting-started/quick-start/
       icon: right-arrow
-    - text: Read the Starlight docs
-      link: https://starlight.astro.build
+      variant: primary
+    - text: View on GitHub
+      link: https://github.com/mohxmd/kiln
       icon: external
-      variant: minimal
+      variant: secondary
 ---
 
-import { Card, CardGrid } from '@astrojs/starlight/components';
+import { Card, CardGrid } from "@astrojs/starlight/components";
 
-## Next steps
+## Why Kiln?
 
 <CardGrid stagger>
-	<Card title="Update content" icon="pencil">
-		Edit `src/content/docs/index.mdx` to see this page change.
-	</Card>
-	<Card title="Change page layout" icon="document">
-		Delete `template: splash` in `src/content/docs/index.mdx` to display a
-		sidebar on this page.
-	</Card>
-	<Card title="Add new content" icon="add-document">
-		Add Markdown or MDX files to `src/content/docs` to create new pages.
-	</Card>
-	<Card title="Configure your site" icon="setting">
-		Edit your `sidebar` and other config in `astro.config.mjs`.
-	</Card>
-	<Card title="Read the docs" icon="open-book">
-		Learn more in [the Starlight Docs](https://starlight.astro.build/).
-	</Card>
+  <Card title="100% Self-Contained Binaries" icon="rocket">
+    Compile SSR code, server chunks, static assets, and runtime dependencies
+    into one standalone executable binary. Zero `node_modules` or Node.js
+    runtime required on target servers.
+  </Card>
+  <Card title="Universal Framework Adapters" icon="puzzle">
+    Modular adapter architecture designed for modern fullstack frameworks. Full
+    production support for Next.js 16 and Astro 7, with SvelteKit and React
+    Router in the roadmap.
+  </Card>
+  <Card title="Instant Cold Starts (<10ms)" icon="laptop">
+    Deterministic SHA-256 build verification skips extraction on warm restarts,
+    delivering immediate 0ms boot times and instant response handling.
+  </Card>
+  <Card title="Docker & Edge Optimized" icon="seti:docker">
+    Pre-extract runtime files during container image builds using `--extract`
+    for lightning-fast container scaling and minimal image footprints.
+  </Card>
 </CardGrid>
