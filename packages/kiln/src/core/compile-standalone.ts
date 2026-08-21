@@ -1,8 +1,10 @@
-﻿/**
+/**
  * Runs Bun native compilation against generated standalone entrypoint.
  */
 
 import { execFileSync } from "node:child_process";
+import { existsSync } from "node:fs";
+import { homedir } from "node:os";
 import { join } from "node:path";
 
 import {
@@ -11,6 +13,20 @@ import {
 } from "../constants.js";
 import type { CompileStandaloneOptions } from "../types.js";
 import { logError, logInfo } from "../utils/log.js";
+
+function resolveBunExecutable(): string {
+  // Check standard ~/.bun/bin fallback if not available on current process PATH
+  const userBun = join(
+    homedir(),
+    ".bun",
+    "bin",
+    process.platform === "win32" ? "bun.exe" : "bun",
+  );
+  if (existsSync(userBun)) {
+    return userBun;
+  }
+  return "bun";
+}
 
 export function compileStandalone(options: CompileStandaloneOptions): void {
   const { standaloneDir, outfile, extraArgs = [], extraDefines = [] } = options;
@@ -34,9 +50,10 @@ export function compileStandalone(options: CompileStandaloneOptions): void {
     ...extraArgs,
   ];
 
+  const bunExec = resolveBunExecutable();
   logInfo(`compiling Bun native binary to ${outfile}`);
   try {
-    execFileSync("bun", args, { stdio: "inherit" });
+    execFileSync(bunExec, args, { stdio: "inherit" });
   } catch (err) {
     if ((err as NodeJS.ErrnoException).code === "ENOENT") {
       logError("`bun` was not found on PATH. Please install it from https://bun.sh and try again.");

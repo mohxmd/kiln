@@ -1,10 +1,12 @@
 /**
- * Next.js build adapter that hooks into `next build` via experimental.adapterPath.
+ * Next.js build adapter that hooks into `next build` via adapterPath.
  *
  * This is the module loaded by Next when you set:
- *   experimental: { adapterPath: import.meta.resolve("kiln") }
+ *   adapterPath: import.meta.resolve("kiln-compiler")
  */
 
+import { existsSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 import { writeBuildContext } from "../../core/build-context.js";
 import { logWarn } from "../../utils/log.js";
 import { KNOWN_TRANSPILE_PACKAGES } from "./constants.js";
@@ -90,6 +92,12 @@ export function createNextBuildHook(): NextBuildHook {
     },
 
     async onBuildComplete(context) {
+      // Ensure Next 16 nft trace manifest exists if Next expects it at distDir
+      const nftPath = join(context.distDir, "next-server.js.nft.json");
+      if (!existsSync(nftPath)) {
+        writeFileSync(nftPath, JSON.stringify({ version: 1, files: [] }));
+      }
+
       writeBuildContext(
         context.distDir,
         context.projectDir,

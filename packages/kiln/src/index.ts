@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Public API surface for kiln.
  */
 

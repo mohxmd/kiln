@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env node
+#!/usr/bin/env node
 
 /**
  * CLI entrypoint for compiling framework app output into a Bun binary.

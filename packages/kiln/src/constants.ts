@@ -6,11 +6,20 @@ export const BUILD_CONTEXT_FILE = "kiln-ctx.json";
 export const GENERATED_ASSETS_FILE = "assets.generated.js";
 export const GENERATED_SERVER_ENTRY_FILE = "server-entry.js";
 
-export const DEFAULT_BUN_BUILD_ARGS = [
+/**
+ * Default Bun build flags passed to `bun build --compile`.
+ *
+ * Webpack and its submodules are externalized because Next.js's bundled
+ * webpack (bundle5.js) contains require() calls to build-time-only plugins
+ * like terser-webpack-plugin that are never executed at production runtime.
+ *
+ * Note: glob patterns like "webpack/*" are safe here because
+ * compile-standalone.ts uses execFileSync (no shell expansion).
+ */
+export const DEFAULT_BUN_BUILD_ARGS: readonly string[] = [
   "--production",
   "--compile",
   "--minify",
-  "--sourcemap",
   "--external",
   "webpack",
   "--external",
@@ -21,4 +30,4 @@ export const DEFAULT_BUN_BUILD_ARGS = [
   "sass",
   "--external",
   "critters",
-] as const;
+];

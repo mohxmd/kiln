@@ -1,15 +1,10 @@
-﻿/**
- * Next.js framework adapter implementation.
+/**
+ * Next.js framework adapter for Kiln compiler.
  */
 
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
-import { GENERATED_ASSETS_FILE } from "../../constants.js";
-import { isPrunableModuleFile } from "../../core/prune.js";
-import { walkDir } from "../../utils/fs.js";
-import { logInfo } from "../../utils/log.js";
-import { toPosixPath } from "../../utils/path.js";
 import type {
   EmbeddedAsset,
   FrameworkAdapter,
@@ -17,6 +12,11 @@ import type {
   ServerEntryContext,
   StaticAssetConfig,
 } from "../types.js";
+import { GENERATED_ASSETS_FILE } from "../../constants.js";
+import { isPrunableModuleFile } from "../../core/prune.js";
+import { walkDir } from "../../utils/fs.js";
+import { logInfo } from "../../utils/log.js";
+import { toPosixPath } from "../../utils/path.js";
 import { NEXT_BUILD_DEFINES, NEXT_STUB_MODULES } from "./constants.js";
 import { generateResolverHookSource } from "./resolver-hook.js";
 import {
@@ -30,28 +30,46 @@ import {
 export type { NextBuildHook } from "./build-hook.js";
 export { createNextBuildHook } from "./build-hook.js";
 
-function extractNextConfigLiteral(standaloneDir: string): string {
-  // Prefer structured required-server-files.json over fragile regex on generated JS
-  const rsfPath = join(standaloneDir, ".next", "required-server-files.json");
+function getRelativeAppDir(distDir: string): string {
+  const rsfPath = join(distDir, "required-server-files.json");
   if (existsSync(rsfPath)) {
     try {
       const rsf = JSON.parse(readFileSync(rsfPath, "utf-8"));
-      if (rsf?.config && typeof rsf.config === "object") {
-        return JSON.stringify(rsf.config);
+      if (typeof rsf?.relativeAppDir === "string") {
+        return toPosixPath(rsf.relativeAppDir);
       }
-    } catch {
-      // Fall through to legacy extraction
+    } catch {}
+  }
+  return "";
+}
+
+function extractNextConfigLiteral(standaloneDir: string, distDir?: string): string {
+  // Prefer structured required-server-files.json over fragile regex on generated JS
+  const rsfCandidates = [
+    distDir ? join(distDir, "required-server-files.json") : null,
+    join(standaloneDir, ".next", "required-server-files.json"),
+  ].filter(Boolean) as string[];
+
+  for (const rsfPath of rsfCandidates) {
+    if (existsSync(rsfPath)) {
+      try {
+        const rsf = JSON.parse(readFileSync(rsfPath, "utf-8"));
+        if (rsf?.config && typeof rsf.config === "object") {
+          return JSON.stringify(rsf.config);
+        }
+      } catch {}
     }
   }
 
   // Fallback: regex-parse the standalone server.js entry
   const serverPath = join(standaloneDir, "server.js");
-  if (!existsSync(serverPath)) {
-    return "{}";
+  if (existsSync(serverPath)) {
+    const serverSource = readFileSync(serverPath, "utf-8");
+    const configMatch = serverSource.match(/const nextConfig = ({[\s\S]*?})\n/);
+    if (configMatch?.[1]) return configMatch[1];
   }
-  const serverSource = readFileSync(serverPath, "utf-8");
-  const configMatch = serverSource.match(/const nextConfig = ({[\s\S]*?})\n/);
-  return configMatch?.[1] ?? "{}";
+
+  return "{}";
 }
 
 export function createNextAdapter(): FrameworkAdapter {
@@ -59,7 +77,7 @@ export function createNextAdapter(): FrameworkAdapter {
     framework: "next",
     name: "Next.js",
 
-    detect(projectDir) {
+    detect(projectDir: string): boolean {
       return (
         existsSync(join(projectDir, "next.config.ts")) ||
         existsSync(join(projectDir, "next.config.js")) ||
@@ -67,11 +85,11 @@ export function createNextAdapter(): FrameworkAdapter {
       );
     },
 
-    getStandaloneDir(projectDir) {
+    getStandaloneDir(projectDir: string): string {
       return join(projectDir, ".next", "standalone");
     },
 
-    getDistDir(projectDir) {
+    getDistDir(projectDir: string): string {
       return join(projectDir, ".next");
     },
 
@@ -150,15 +168,20 @@ export function createNextAdapter(): FrameworkAdapter {
     },
 
     generateServerEntry(ctx: ServerEntryContext): string {
-      const nextConfigLiteral = extractNextConfigLiteral(ctx.standaloneDir);
+      const nextConfigLiteral = extractNextConfigLiteral(ctx.standaloneDir, ctx.distDir);
       const resolverHook = generateResolverHookSource(ctx.aliases ?? {});
 
+      const relativeAppDir = getRelativeAppDir(ctx.distDir);
+      const appPrefix = relativeAppDir ? `${relativeAppDir}/` : "";
+
       const assetExtractions = ctx.assets.map((asset) => {
-        let diskPath = asset.relativePath;
+        let diskPath = toPosixPath(asset.relativePath);
         if (asset.urlPath.startsWith("/_next/static/")) {
           diskPath = `.next/static/${asset.relativePath}`;
         } else if (asset.urlPath.startsWith("/") && !asset.isRuntime) {
           diskPath = `public/${asset.relativePath}`;
+        } else if (appPrefix && diskPath.startsWith(appPrefix)) {
+          diskPath = diskPath.slice(appPrefix.length);
         }
         return [asset.urlPath, toPosixPath(diskPath)];
       });
@@ -255,8 +278,9 @@ if (process.argv.includes("--extract")) {
 } else {
   extractAssets()
     .then(() => {
-      require("next");
-      const { startServer } = require("next/dist/server/lib/start-server");
+      const appRequire = Module.createRequire(path.join(baseDir, "server.js"));
+      appRequire("next");
+      const { startServer } = appRequire("next/dist/server/lib/start-server");
       return startServer({
         dir: baseDir,
         isDev: false,

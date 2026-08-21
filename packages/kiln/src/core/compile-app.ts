@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Generic orchestration for compiling framework output to Bun binary.
  * Auto-detects the framework or uses the explicitly provided one.
  */

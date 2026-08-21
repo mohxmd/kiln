@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Asset pruning and compression utilities to minimize final binary size.
  */
 
@@ -12,12 +12,13 @@ export function isPrunableModuleFile(mod: string): boolean {
   if (mod.endsWith(".map")) return true;
 
   // Development builds are unreachable in production (NODE_ENV=production)
-  if (/^next\/dist\/compiled\/next-server\/.*\.dev\.js$/.test(mod)) return true;
-  if (/^(react|react-dom)\/.*\.development\.js$/.test(mod)) return true;
+  if (mod.includes("next/dist/compiled/next-server/") && mod.endsWith(".dev.js")) return true;
+  if (mod.includes("/development.js") || mod.endsWith("/react.development.js") || mod.endsWith("/react-dom.development.js")) return true;
 
   // Webpack build machinery is never loaded by output builds in production
-  if (mod.startsWith("next/dist/compiled/webpack/")) return true;
-  if (mod.includes("/node_modules/webpack5/")) return true;
+  if (mod.includes("next/dist/compiled/webpack/")) return true;
+  if (mod.includes("node_modules/webpack5/")) return true;
+  if (mod.includes("next/dist/build/webpack/")) return true;
 
   return false;
 }

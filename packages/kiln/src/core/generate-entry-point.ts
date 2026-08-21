@@ -8,6 +8,7 @@ import {
   existsSync,
   mkdirSync,
   readFileSync,
+  statSync,
   writeFileSync,
 } from "node:fs";
 import { join, relative } from "node:path";
@@ -24,7 +25,7 @@ import {
 } from "../constants.js";
 import { walkDir } from "../utils/fs.js";
 import { logInfo } from "../utils/log.js";
-import { toPosixPath, toSafeAssetVariableName } from "../utils/path.js";
+import { toPosixPath } from "../utils/path.js";
 import { tryReadBuildContext } from "./build-context.js";
 import { shouldCompressEmbeddedAsset } from "./prune.js";
 import { generateStubs } from "./stubs.js";
@@ -72,7 +73,7 @@ function generateAssetsModule(
 
   for (let i = 0; i < assets.length; i += 1) {
     const asset = assets[i] as EmbeddedAsset;
-    const variableName = toSafeAssetVariableName(asset.urlPath) + `_${i}`;
+    const variableName = `__asset_${i}`;
     const importPath = toPosixPath(relative(standaloneDir, asset.absolutePath));
     imports.push(
       `import ${variableName} from "./${importPath}" with { type: "file" };`,
@@ -118,11 +119,20 @@ export function generateEntryPoint(options: GenerateEntryPointOptions): void {
   const buildContext = tryReadBuildContext(distDir);
   const assetPrefix = buildContext?.assetPrefix ?? "";
 
-  const assetsToEmbed: EmbeddedAsset[] = [
+  const allAssets: EmbeddedAsset[] = [
     ...(assetPrefix.length > 0 ? [] : staticAssets),
     ...publicAssets,
     ...runtimeAssets,
   ];
+
+  // Fast filter: verify file exists on disk
+  const assetsToEmbed: EmbeddedAsset[] = allAssets.filter((asset) => {
+    try {
+      return statSync(asset.absolutePath).isFile();
+    } catch {
+      return false;
+    }
+  });
 
   if (assetPrefix.length > 0) {
     logInfo(
@@ -134,8 +144,8 @@ export function generateEntryPoint(options: GenerateEntryPointOptions): void {
     `embedding ${assetsToEmbed.length} assets (${staticAssets.length} static + ${publicAssets.length} public + ${runtimeAssets.length} runtime)`,
   );
 
-  // Compress extraction-bound runtime assets with Gzip
-  const gzStoreDir = join(standaloneDir, ".kiln_gz");
+  // Fast Gzip compression for eligible text server chunks
+  const gzStoreDir = join(distDir, "cache", ".kiln_gz");
   const gzippedUrls = new Set<string>();
   let gzSavedBytes = 0;
 
@@ -144,8 +154,11 @@ export function generateEntryPoint(options: GenerateEntryPointOptions): void {
     if (!asset.isRuntime) continue;
 
     try {
+      const stat = statSync(asset.absolutePath);
+      if (stat.size < 8192) continue; // Only compress text files >= 8KB
+
       const raw = readFileSync(asset.absolutePath);
-      const gz = gzipSync(raw, { level: 6 });
+      const gz = gzipSync(raw, { level: 1 }); // Fast compression level
       if (shouldCompressEmbeddedAsset(asset.urlPath, raw.length, gz.length)) {
         mkdirSync(gzStoreDir, { recursive: true });
         const staged = join(gzStoreDir, `${i}.gz`);
@@ -155,7 +168,7 @@ export function generateEntryPoint(options: GenerateEntryPointOptions): void {
         gzSavedBytes += raw.length - gz.length;
       }
     } catch {
-      // Keep uncompressed if read fails
+      // Keep raw if read fails
     }
   }
 
@@ -165,12 +178,13 @@ export function generateEntryPoint(options: GenerateEntryPointOptions): void {
     );
   }
 
-  // Compute deterministic SHA-256 build stamp for instant cold-start verification
+  // Fast deterministic build stamp based on file path and stat
   const hasher = createHash("sha256");
   for (const asset of assetsToEmbed) {
     hasher.update(asset.urlPath);
     try {
-      hasher.update(readFileSync(asset.absolutePath));
+      const stat = statSync(asset.absolutePath);
+      hasher.update(String(stat.size));
     } catch {}
   }
   const buildStamp = hasher.digest("hex");
