@@ -1,4 +1,4 @@
-# kiln
+﻿# kiln
 
 [![npm version](https://img.shields.io/npm/v/kiln-compiler.svg?style=flat-square&color=CB3837)](https://www.npmjs.com/package/kiln-compiler)
 [![license](https://img.shields.io/npm/l/kiln-compiler.svg?style=flat-square&color=blue)](https://github.com/mohxmd/kiln/blob/main/LICENSE)
@@ -19,7 +19,7 @@ No `node_modules` or Node.js runtime installation required on the target server.
 | **SvelteKit** | Planned | Adapter in roadmap |
 | **React Router / Remix** | Planned | Adapter in roadmap |
 | **TanStack Start** | Planned | Adapter in roadmap |
-| **Astro** | Planned | Adapter in roadmap |
+| **Astro** | Supported (5+) | `@astrojs/node` standalone |
 | **Nitro** | Planned | Adapter in roadmap |
 
 ---
@@ -92,4 +92,4 @@ bun run build:compile
 
 ## License
 
-[MIT](LICENSE) © [Mohamed](https://github.com/mohxmd)
+[MIT](LICENSE) Â© [Mohamed](https://github.com/mohxmd)

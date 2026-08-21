@@ -1,4 +1,4 @@
-# kiln-compiler
+﻿# kiln-compiler
 
 [![npm version](https://img.shields.io/npm/v/kiln-compiler.svg?style=flat-square&color=CB3837)](https://www.npmjs.com/package/kiln-compiler)
 [![license](https://img.shields.io/npm/l/kiln-compiler.svg?style=flat-square&color=blue)](https://github.com/mohxmd/kiln/blob/main/LICENSE)
@@ -7,7 +7,7 @@
 
 **Compile modern web framework applications into single self-contained native executables via [Bun](https://bun.sh).**
 
-> **Supported**: Next.js 15+ & 16 (App Router & Pages Router) • **Planned**: SvelteKit, React Router, TanStack Start, Astro, Nitro
+> **Supported**: Next.js 15+ & 16 (App Router & Pages Router) â€¢ **Planned**: SvelteKit, React Router, TanStack Start, Astro, Nitro
 
 ---
 
@@ -98,7 +98,7 @@ kiln -o ./server-win.exe --target bun-windows-x64
 |---|---|---|
 | `PORT` | `3000` | Server HTTP port |
 | `HOSTNAME` | `0.0.0.0` | Server bind hostname |
-| `KEEP_ALIVE_TIMEOUT` | — | HTTP keep-alive timeout in milliseconds |
+| `KEEP_ALIVE_TIMEOUT` | â€” | HTTP keep-alive timeout in milliseconds |
 | `KILN_RUNTIME_DIR` | Binary directory | Runtime files extraction root (e.g. `/tmp/app` for RAM-backed tmpfs) |
 
 ---
@@ -165,4 +165,4 @@ import { compileApp, compileStandalone, generateEntryPoint } from "kiln-compiler
 
 ## License
 
-[MIT](LICENSE) © [Mohamed](https://github.com/mohxmd)
+[MIT](LICENSE) Â© [Mohamed](https://github.com/mohxmd)

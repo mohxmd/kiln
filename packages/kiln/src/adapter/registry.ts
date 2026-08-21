@@ -2,6 +2,7 @@
  * Framework adapter registry with auto-detection support.
  */
 
+import { createAstroAdapter } from "./astro/index.js";
 import { createNextAdapter } from "./next/index.js";
 import type {
   FrameworkAdapter,
@@ -10,10 +11,15 @@ import type {
 
 const registry = new Map<string, FrameworkAdapterRegistration>();
 
-// Register built-in adapters
+// Register built-in framework adapters
 registerAdapter({
   framework: "next",
   create: () => createNextAdapter(),
+});
+
+registerAdapter({
+  framework: "astro",
+  create: () => createAstroAdapter(),
 });
 
 export function registerAdapter(
