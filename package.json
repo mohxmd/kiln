@@ -1,4 +1,4 @@
-{
+﻿{
   "name": "kiln-monorepo",
   "private": true,
   "type": "module",
@@ -7,8 +7,8 @@
     "examples/*"
   ],
   "scripts": {
-    "build": "pnpm --filter kiln-compiler build",
-    "check-types": "pnpm --filter kiln-compiler check-types",
-    "test": "pnpm --filter kiln-compiler test"
+    "build": "bun --filter kiln-compiler build",
+    "check-types": "bun --filter kiln-compiler check-types",
+    "test": "bun test packages/kiln/tests"
   }
 }

@@ -1,4 +1,4 @@
-{
+﻿{
   "name": "kiln-compiler",
   "version": "0.1.0",
   "description": "Compile framework apps into native Bun executables.",
@@ -30,7 +30,7 @@
     "build": "node -e \"require('fs').rmSync('dist', { recursive: true, force: true })\" && tsc --project tsconfig.json",
     "check-types": "tsc --project tsconfig.json --noEmit",
     "test": "bun test",
-    "prepublishOnly": "pnpm run build"
+    "prepublishOnly": "bun run build"
   },
   "keywords": [
     "nextjs",

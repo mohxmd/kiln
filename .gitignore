@@ -1,4 +1,4 @@
-# Dependencies
+﻿# Dependencies
 node_modules/
 package-lock.json
 yarn.lock
@@ -41,3 +41,5 @@ lerna-debug.log*
 server
 server.exe
 *.exe
+
+bin/
