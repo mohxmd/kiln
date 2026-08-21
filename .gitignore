@@ -1,14 +1,13 @@
 # Dependencies
 node_modules/
 package-lock.json
-pnpm-lock.yaml
 yarn.lock
 bun.lock
 
 # Build outputs
-/dist/
-/.next/
-/out/
+dist/
+.next/
+out/
 build/
 
 # Testing
@@ -37,3 +36,8 @@ lerna-debug.log*
 *.ntvs*
 *.njsproj
 *.sln
+
+# Compiled Binaries
+server
+server.exe
+*.exe

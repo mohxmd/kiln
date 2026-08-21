@@ -1,0 +1,34 @@
+import { describe, expect, it } from "bun:test";
+import { toPosixPath, toSafeAssetVariableName } from "../src/utils/path.js";
+
+describe("utils/path", () => {
+  describe("toPosixPath", () => {
+    it("converts Windows backslashes to POSIX slashes", () => {
+      expect(toPosixPath("foo\\bar\\baz")).toBe("foo/bar/baz");
+      expect(toPosixPath(".next\\static\\chunks\\app.js")).toBe(".next/static/chunks/app.js");
+    });
+
+    it("leaves POSIX paths unchanged", () => {
+      expect(toPosixPath("foo/bar/baz")).toBe("foo/bar/baz");
+    });
+  });
+
+  describe("toSafeAssetVariableName", () => {
+    it("replaces special characters with underscores and appends a sha256 hash slice", () => {
+      const varName = toSafeAssetVariableName("static/chunks/main-app.js");
+      expect(varName).toMatch(/^asset_static_chunks_main_app_js_[0-9a-f]{6}$/);
+    });
+
+    it("produces deterministic identifiers for identical inputs", () => {
+      const var1 = toSafeAssetVariableName("public/images/logo.png");
+      const var2 = toSafeAssetVariableName("public/images/logo.png");
+      expect(var1).toBe(var2);
+    });
+
+    it("produces unique identifiers for different inputs with similar sanitization", () => {
+      const var1 = toSafeAssetVariableName("app/page.js");
+      const var2 = toSafeAssetVariableName("app/page.ts");
+      expect(var1).not.toBe(var2);
+    });
+  });
+});
