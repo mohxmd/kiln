@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+﻿#!/usr/bin/env node
 
 /**
  * CLI entrypoint for compiling framework app output into a Bun binary.
@@ -12,7 +12,7 @@ import { logError, logInfo } from "./utils/log.js";
 
 function printHelp(): void {
   console.log(`
-kiln ðŸ”¥ - Compile framework apps into single native Bun executables
+kiln - Compile framework apps into single native Bun executables
 
 Usage:
   kiln [options] [-- bun-build-flags...]

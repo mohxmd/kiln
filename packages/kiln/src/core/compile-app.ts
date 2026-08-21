@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Generic orchestration for compiling framework output to Bun binary.
  * Auto-detects the framework or uses the explicitly provided one.
  */
@@ -32,7 +32,7 @@ export function compileApp(options: CompileAppOptions): {
     );
   }
 
-  logInfo(`${adapter.name} adapter — standalone: ${standaloneDir}`);
+  logInfo(`${adapter.name} adapter -> standalone: ${standaloneDir}`);
 
   generateEntryPoint({ standaloneDir, distDir, projectDir, adapter });
   compileStandalone({

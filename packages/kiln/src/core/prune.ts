@@ -1,10 +1,10 @@
-/**
+﻿/**
  * Asset pruning and compression utilities to minimize final binary size.
  */
 
 /**
  * Build-time-only files that reach the standalone tree through traces
- * but can never load at production runtime — embedding them costs binary
+ * but can never load at production runtime -- embedding them costs binary
  * size and extraction time for no benefit.
  */
 export function isPrunableModuleFile(mod: string): boolean {
