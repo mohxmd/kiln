@@ -29,4 +29,12 @@ export const NEXT_STUB_MODULES: readonly StubModule[] = [
     path: "node_modules/critters/index.js",
     content: "module.exports = {};",
   },
+  {
+    path: "node_modules/kiln-compiler/index.js",
+    content: "module.exports = {};",
+  },
+  {
+    path: "node_modules/kiln-compiler/package.json",
+    content: '{"name":"kiln-compiler","main":"index.js"}',
+  },
 ];

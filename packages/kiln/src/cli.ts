@@ -21,13 +21,15 @@ Options:
   -p, --project <dir>      Project root directory (default: ".")
   -o, --out <path>         Output binary path (default: "./server")
   -f, --framework <name>   Framework adapter to use (auto-detected if omitted)
+  -e, --engine <engine>    Runtime HTTP server engine: "default" | "bun-serve" (default: "default")
   -t, --target <target>    Cross-compilation target (e.g. bun-linux-x64, bun-windows-x64)
   --list-adapters          List all registered framework adapters
   -h, --help               Show this help message
 
 Examples:
   kiln
-  kiln -o ./dist/app
+  kiln -o ./bin/app
+  kiln --engine bun-serve -o ./bin/app
   kiln -o ./server-linux --target bun-linux-x64
   kiln -p ./apps/web -f next
 `);
@@ -37,11 +39,13 @@ function parseArgs(argv: string[]): {
   projectDir: string;
   outputFile?: string;
   framework?: string;
+  engine?: "default" | "bun-serve";
   extraArgs: string[];
 } {
   let projectDir = ".";
   let outputFile: string | undefined;
   let framework: string | undefined;
+  let engine: "default" | "bun-serve" | undefined = (process.env.KILN_ENGINE as "default" | "bun-serve") || "default";
   const extraArgs: string[] = [];
 
   for (let i = 0; i < argv.length; i += 1) {
@@ -82,6 +86,16 @@ function parseArgs(argv: string[]): {
       i += 1;
       continue;
     }
+    if (arg === "--engine" || arg === "-e") {
+      const val = argv[i + 1];
+      if (val !== "default" && val !== "bun-serve") {
+        logError('--engine must be either "default" or "bun-serve"');
+        process.exit(1);
+      }
+      engine = val;
+      i += 1;
+      continue;
+    }
     if (arg === "--target" || arg === "-t") {
       const val = argv[i + 1];
       if (!val || val.startsWith("-")) {
@@ -100,7 +114,7 @@ function parseArgs(argv: string[]): {
     extraArgs.push(arg);
   }
 
-  return { projectDir: resolve(projectDir), outputFile, framework, extraArgs };
+  return { projectDir: resolve(projectDir), outputFile, framework, engine, extraArgs };
 }
 
 function main(): void {
@@ -110,6 +124,7 @@ function main(): void {
       projectDir: parsed.projectDir,
       outputFile: parsed.outputFile,
       framework: parsed.framework,
+      engine: parsed.engine,
       extraArgs: parsed.extraArgs,
     });
     logInfo(`binary ready at ${result.outputFile} (${result.framework})`);

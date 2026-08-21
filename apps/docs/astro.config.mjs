@@ -32,6 +32,7 @@ export default defineConfig({
         {
           label: "Guides",
           items: [
+            { label: "Runtime Engines", slug: "guides/runtime-engines" },
             { label: "Docker Deployment", slug: "guides/docker" },
             { label: "Cross-Compilation", slug: "guides/cross-compilation" },
             { label: "Runtime Extraction & Cache", slug: "guides/runtime-cache" },

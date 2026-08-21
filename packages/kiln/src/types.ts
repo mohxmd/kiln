@@ -1,23 +1,26 @@
 /**
- * Shared public types for kiln.
+ * Shared types for Kiln compiler core.
  */
 
 export interface BuildContext {
   distDir: string;
   projectDir: string;
-  assetPrefix: string;
+  assetPrefix?: string;
+  basePath?: string;
+  hasRewrites?: boolean;
 }
 
 export interface CompileStandaloneOptions {
   standaloneDir: string;
   outfile: string;
-  extraArgs?: string[];
+  extraArgs?: readonly string[];
   extraDefines?: readonly string[];
 }
 
 export interface CompileAppOptions {
   projectDir: string;
-  framework?: string;
   outputFile?: string;
-  extraArgs?: string[];
+  framework?: string;
+  engine?: "default" | "bun-serve";
+  extraArgs?: readonly string[];
 }

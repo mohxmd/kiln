@@ -1,5 +1,6 @@
 /**
  * Next.js framework adapter for Kiln compiler.
+ * Supports Next.js 15+ and Next.js 16 with top-level adapterPath.
  */
 
 import { existsSync, readFileSync } from "node:fs";
@@ -11,6 +12,7 @@ import type {
   RuntimeTransformResult,
   ServerEntryContext,
   StaticAssetConfig,
+  StubModule,
 } from "../types.js";
 import { GENERATED_ASSETS_FILE } from "../../constants.js";
 import { isPrunableModuleFile } from "../../core/prune.js";
@@ -27,8 +29,7 @@ import {
   validateAliasResolutions,
 } from "./turbopack.js";
 
-export type { NextBuildHook } from "./build-hook.js";
-export { createNextBuildHook } from "./build-hook.js";
+export { createNextBuildHook, type NextBuildHook } from "./build-hook.js";
 
 function getRelativeAppDir(distDir: string): string {
   const rsfPath = join(distDir, "required-server-files.json");
@@ -41,35 +42,6 @@ function getRelativeAppDir(distDir: string): string {
     } catch {}
   }
   return "";
-}
-
-function extractNextConfigLiteral(standaloneDir: string, distDir?: string): string {
-  // Prefer structured required-server-files.json over fragile regex on generated JS
-  const rsfCandidates = [
-    distDir ? join(distDir, "required-server-files.json") : null,
-    join(standaloneDir, ".next", "required-server-files.json"),
-  ].filter(Boolean) as string[];
-
-  for (const rsfPath of rsfCandidates) {
-    if (existsSync(rsfPath)) {
-      try {
-        const rsf = JSON.parse(readFileSync(rsfPath, "utf-8"));
-        if (rsf?.config && typeof rsf.config === "object") {
-          return JSON.stringify(rsf.config);
-        }
-      } catch {}
-    }
-  }
-
-  // Fallback: regex-parse the standalone server.js entry
-  const serverPath = join(standaloneDir, "server.js");
-  if (existsSync(serverPath)) {
-    const serverSource = readFileSync(serverPath, "utf-8");
-    const configMatch = serverSource.match(/const nextConfig = ({[\s\S]*?})\n/);
-    if (configMatch?.[1]) return configMatch[1];
-  }
-
-  return "{}";
 }
 
 export function createNextAdapter(): FrameworkAdapter {
@@ -97,29 +69,27 @@ export function createNextAdapter(): FrameworkAdapter {
       return { dir: "static", urlPrefix: "/_next/static" };
     },
 
-    getStubs() {
+    getStubs(): readonly StubModule[] {
       return NEXT_STUB_MODULES;
     },
 
-    getBuildDefines() {
+    getBuildDefines(): readonly string[] {
       return NEXT_BUILD_DEFINES;
     },
 
-    getRuntimeFiles(ctx): EmbeddedAsset[] {
+    getRuntimeFiles(ctx: {
+      standaloneDir: string;
+      distDir: string;
+      projectDir: string;
+    }): EmbeddedAsset[] {
       const { standaloneDir } = ctx;
-      const results: EmbeddedAsset[] = [];
-      if (!existsSync(standaloneDir)) return results;
-
       const allFiles = walkDir(standaloneDir);
+      const results: EmbeddedAsset[] = [];
       let prunedCount = 0;
 
       for (const file of allFiles) {
         const posixRel = toPosixPath(file.relativePath);
 
-        // Skip static directory (handled separately by getStaticAssetConfig)
-        if (posixRel.startsWith(".next/static/")) continue;
-
-        // Prune sourcemaps, development modules, and webpack internals
         if (isPrunableModuleFile(posixRel)) {
           prunedCount += 1;
           continue;
@@ -134,45 +104,44 @@ export function createNextAdapter(): FrameworkAdapter {
       }
 
       if (prunedCount > 0) {
-        logInfo(`pruned ${prunedCount} unused build/debug files from standalone output`);
+        logInfo(`pruned ${prunedCount} unused files from standalone output`);
       }
 
       return results;
     },
 
-    transformStandalone(ctx): RuntimeTransformResult {
-      const { standaloneDir } = ctx;
-      const standaloneNextDir = join(standaloneDir, ".next");
-
-      // Patch require-hook for safe require.resolve in compiled binaries
+    transformStandalone(ctx: {
+      standaloneDir: string;
+      distDir: string;
+      projectDir: string;
+    }): RuntimeTransformResult | void {
+      const { standaloneDir, distDir } = ctx;
       patchRequireHook(standaloneDir);
 
-      // Discover and resolve Turbopack mangled aliases
-      const aliases = findTurbopackAliases(standaloneNextDir);
-      const externalRoot = join(standaloneDir, "node_modules");
-      const resolutions = buildCanonicalResolutions(externalRoot, aliases);
+      const aliases = findTurbopackAliases(standaloneDir);
+      if (aliases.length === 0) return undefined;
+
+      const resolutions = buildCanonicalResolutions(distDir, aliases);
       validateAliasResolutions(aliases, resolutions);
 
-      // In-place rewrite of server chunk references to canonical target paths
       const rewrittenChunks = rewriteTurbopackAliases(
-        standaloneNextDir,
+        standaloneDir,
         aliases,
         resolutions,
       );
 
-      const aliasMap = Object.fromEntries(
-        aliases.map((a) => [a.alias, a.target]),
-      );
+      const aliasMap: Record<string, string> = {};
+      for (const [key, value] of resolutions.entries()) {
+        aliasMap[key] = value;
+      }
 
       return { rewrittenChunks, aliases: aliasMap };
     },
 
     generateServerEntry(ctx: ServerEntryContext): string {
-      const nextConfigLiteral = extractNextConfigLiteral(ctx.standaloneDir, ctx.distDir);
-      const resolverHook = generateResolverHookSource(ctx.aliases ?? {});
-
       const relativeAppDir = getRelativeAppDir(ctx.distDir);
       const appPrefix = relativeAppDir ? `${relativeAppDir}/` : "";
+      const isBunServe = ctx.engine === "bun-serve";
 
       const assetExtractions = ctx.assets.map((asset) => {
         let diskPath = toPosixPath(asset.relativePath);
@@ -186,12 +155,12 @@ export function createNextAdapter(): FrameworkAdapter {
         return [asset.urlPath, toPosixPath(diskPath)];
       });
 
-      const rewrittenChunksArray = ctx.rewrittenChunks ?? [];
+      const resolverHook = generateResolverHookSource(ctx.aliases ?? {});
 
       return `import { assetMap, gzippedAssets } from "./${GENERATED_ASSETS_FILE}";
-const path = require("path");
-const fs = require("fs");
-const Module = require("module");
+const path = require("node:path");
+const fs = require("node:fs");
+const Module = require("node:module");
 
 const baseDir = process.env.KILN_RUNTIME_DIR
   ? path.resolve(process.env.KILN_RUNTIME_DIR)
@@ -201,25 +170,15 @@ fs.mkdirSync(baseDir, { recursive: true });
 process.chdir(baseDir);
 process.env.NODE_ENV = "production";
 
-${resolverHook}
-
-const nextConfig = ${nextConfigLiteral};
-process.env.__NEXT_PRIVATE_STANDALONE_CONFIG = JSON.stringify(nextConfig);
-
-const port = parseInt(process.env.PORT, 10) || 3000;
-const hostname = process.env.HOSTNAME || "0.0.0.0";
-let keepAliveTimeout = parseInt(process.env.KEEP_ALIVE_TIMEOUT, 10);
-if (Number.isNaN(keepAliveTimeout) || !Number.isFinite(keepAliveTimeout) || keepAliveTimeout < 0) {
-  keepAliveTimeout = undefined;
-}
+const publicPort = parseInt(process.env.PORT, 10) || 3000;
+const publicHost = process.env.HOSTNAME || "0.0.0.0";
+const keepAliveTimeout = process.env.KEEP_ALIVE_TIMEOUT ? parseInt(process.env.KEEP_ALIVE_TIMEOUT, 10) : undefined;
 
 const extractions = ${JSON.stringify(assetExtractions)};
-const rewrittenChunks = new Set(${JSON.stringify(rewrittenChunksArray)});
 const buildStamp = ${JSON.stringify(ctx.buildStamp)} + "\\n" + baseDir;
-const manifestPath = path.join(baseDir, ".next", ".kiln-extracted");
+const manifestPath = path.join(baseDir, ".kiln-extracted");
 
 async function extractAssets() {
-  // Fast path: skip extraction if already extracted in this directory
   try {
     if (fs.readFileSync(manifestPath, "utf-8") === buildStamp) return;
   } catch {}
@@ -241,15 +200,10 @@ async function extractAssets() {
       const fullPath = path.join(baseDir, diskPath);
       const isGzipped = gzippedAssets.has(urlPath);
 
-      if (isGzipped || rewrittenChunks.has(diskPath)) {
+      if (isGzipped) {
         let bytes = await Bun.file(embedded).bytes();
-        if (isGzipped) bytes = Bun.gunzipSync(bytes);
-        if (rewrittenChunks.has(diskPath)) {
-          const text = new TextDecoder().decode(bytes);
-          await Bun.write(fullPath, text.split("__KILN_BASE__").join(baseDir));
-        } else {
-          await Bun.write(fullPath, bytes);
-        }
+        bytes = Bun.gunzipSync(bytes);
+        await Bun.write(fullPath, bytes);
       } else {
         await Bun.write(fullPath, Bun.file(embedded));
       }
@@ -259,12 +213,10 @@ async function extractAssets() {
   const workerCount = Math.min(64, Math.max(1, extractions.length));
   await Promise.all(Array.from({ length: workerCount }, worker));
 
-  fs.mkdirSync(path.dirname(manifestPath), { recursive: true });
   fs.writeFileSync(manifestPath, buildStamp);
   console.log(\`[kiln] extracted \${extractions.length} assets to \${baseDir}\`);
 }
 
-// Docker / CI pre-extraction flag
 if (process.argv.includes("--extract")) {
   extractAssets()
     .then(() => {
@@ -278,18 +230,90 @@ if (process.argv.includes("--extract")) {
 } else {
   extractAssets()
     .then(() => {
-      const appRequire = Module.createRequire(path.join(baseDir, "server.js"));
-      appRequire("next");
-      const { startServer } = appRequire("next/dist/server/lib/start-server");
-      return startServer({
-        dir: baseDir,
-        isDev: false,
-        config: nextConfig,
-        hostname,
-        port,
-        allowRetry: false,
-        keepAliveTimeout,
-      });
+      ${resolverHook}
+
+      const isBunServeEngine = ${JSON.stringify(isBunServe)};
+
+      if (isBunServeEngine) {
+        // High-Speed Bun.serve In-Memory Static Dispatch Engine
+        const internalPort = 30000 + Math.floor(Math.random() * 20000);
+        process.env.PORT = String(internalPort);
+        process.env.HOSTNAME = "127.0.0.1";
+
+        const appRequire = Module.createRequire(path.join(baseDir, "server.js"));
+        appRequire("next");
+        const { startServer } = appRequire("next/dist/server/lib/start-server");
+
+        startServer({
+          dir: baseDir,
+          isDev: false,
+          hostname: "127.0.0.1",
+          port: internalPort,
+          allowRetry: true,
+          keepAliveTimeout,
+        }).then(() => {
+          Bun.serve({
+            port: publicPort,
+            hostname: publicHost,
+            async fetch(req) {
+              const url = new URL(req.url);
+              const pathname = url.pathname;
+
+              // Tier 1: Static /_next/static/* assets (Zero-copy native file streaming)
+              if (pathname.startsWith("/_next/static/")) {
+                const subPath = pathname.slice("/_next/static/".length);
+                const staticFilePath = path.join(baseDir, ".next", "static", subPath);
+                const file = Bun.file(staticFilePath);
+                if (await file.exists()) {
+                  return new Response(file, {
+                    headers: { "Cache-Control": "public, max-age=31536000, immutable" },
+                  });
+                }
+              }
+
+              // Tier 2: Public static files
+              const publicFilePath = path.join(baseDir, "public", pathname.slice(1));
+              const publicFile = Bun.file(publicFilePath);
+              if (pathname !== "/" && await publicFile.exists()) {
+                return new Response(publicFile, {
+                  headers: { "Cache-Control": "public, max-age=3600" },
+                });
+              }
+
+              // Tier 3: Dynamic SSR, API Routes, Server Actions, and proxy.ts via Next.js server
+              const targetUrl = "http://127.0.0.1:" + internalPort + pathname + url.search;
+              return fetch(targetUrl, {
+                method: req.method,
+                headers: req.headers,
+                body: req.body,
+                redirect: "manual",
+              });
+            },
+          });
+
+          console.log(\`▲ Next.js with Bun.serve engine listening on http://\${publicHost}:\${publicPort}\`);
+        }).catch((err) => {
+          console.error("[kiln] server startup failed:", err);
+          process.exit(1);
+        });
+      } else {
+        // Default Official Next.js Server Engine
+        process.env.PORT = String(publicPort);
+        process.env.HOSTNAME = publicHost;
+
+        const appRequire = Module.createRequire(path.join(baseDir, "server.js"));
+        appRequire("next");
+        const { startServer } = appRequire("next/dist/server/lib/start-server");
+
+        return startServer({
+          dir: baseDir,
+          isDev: false,
+          hostname: publicHost,
+          port: publicPort,
+          allowRetry: true,
+          keepAliveTimeout,
+        });
+      }
     })
     .catch((error) => {
       console.error("[kiln] server startup failed:", error);

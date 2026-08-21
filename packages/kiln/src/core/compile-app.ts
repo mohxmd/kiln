@@ -1,6 +1,5 @@
 /**
- * Generic orchestration for compiling framework output to Bun binary.
- * Auto-detects the framework or uses the explicitly provided one.
+ * Main compilation entrypoint for framework applications.
  */
 
 import { existsSync } from "node:fs";
@@ -24,6 +23,7 @@ export function compileApp(options: CompileAppOptions): {
   const distDir = adapter.getDistDir(projectDir);
   const standaloneDir = adapter.getStandaloneDir(projectDir);
   const outputFile = options.outputFile ?? resolve(projectDir, "server");
+  const engine = options.engine ?? "default";
 
   if (!existsSync(standaloneDir)) {
     throw new Error(
@@ -32,9 +32,9 @@ export function compileApp(options: CompileAppOptions): {
     );
   }
 
-  logInfo(`${adapter.name} adapter -> standalone: ${standaloneDir}`);
+  logInfo(`${adapter.name} adapter -> standalone: ${standaloneDir} (engine: ${engine})`);
 
-  generateEntryPoint({ standaloneDir, distDir, projectDir, adapter });
+  generateEntryPoint({ standaloneDir, distDir, projectDir, adapter, engine });
   compileStandalone({
     standaloneDir,
     outfile: outputFile,

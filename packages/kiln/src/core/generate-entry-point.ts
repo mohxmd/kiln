@@ -35,6 +35,7 @@ export interface GenerateEntryPointOptions {
   distDir: string;
   projectDir: string;
   adapter: FrameworkAdapter;
+  engine?: "default" | "bun-serve";
 }
 
 function mapStaticAssets(
@@ -93,7 +94,7 @@ export const gzippedAssets = new Set(${gzippedList});
 }
 
 export function generateEntryPoint(options: GenerateEntryPointOptions): void {
-  const { standaloneDir, distDir, projectDir, adapter } = options;
+  const { standaloneDir, distDir, projectDir, adapter, engine = "default" } = options;
 
   // Generate fallback stubs for optional or dev-only imports
   generateStubs(standaloneDir, adapter.getStubs());
@@ -203,6 +204,7 @@ export function generateEntryPoint(options: GenerateEntryPointOptions): void {
     rewrittenChunks: transformResult?.rewrittenChunks ?? [],
     aliases: transformResult?.aliases ?? {},
     gzippedAssetUrls: [...gzippedUrls],
+    engine,
   });
 
   writeFileSync(
