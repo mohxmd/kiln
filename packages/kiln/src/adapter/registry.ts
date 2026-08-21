@@ -4,6 +4,7 @@
 
 import { createAstroAdapter } from "./astro/index.js";
 import { createNextAdapter } from "./next/index.js";
+import { createReactRouterAdapter } from "./react-router/index.js";
 import { createTanStackAdapter } from "./tanstack/index.js";
 import type {
   FrameworkAdapter,
@@ -26,6 +27,11 @@ registerAdapter({
 registerAdapter({
   framework: "tanstack",
   create: () => createTanStackAdapter(),
+});
+
+registerAdapter({
+  framework: "react-router",
+  create: () => createReactRouterAdapter(),
 });
 
 export function registerAdapter(

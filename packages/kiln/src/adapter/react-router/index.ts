@@ -1,9 +1,9 @@
 /**
- * Astro framework adapter for Kiln compiler.
- * Supports Astro 5+ & 7+ with @astrojs/node standalone output.
+ * React Router v7 framework adapter for Kiln compiler.
+ * Supports React Router v7 (and Remix) Vite SSR build output.
  */
 
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import type {
@@ -18,26 +18,50 @@ import { walkDir } from "../../utils/fs.js";
 import { logInfo } from "../../utils/log.js";
 import { toPosixPath } from "../../utils/path.js";
 
-export function createAstroAdapter(): FrameworkAdapter {
+function hasReactRouterDependency(projectDir: string): boolean {
+  const pkgPath = join(projectDir, "package.json");
+  if (!existsSync(pkgPath)) return false;
+
+  try {
+    const pkg = JSON.parse(readFileSync(pkgPath, "utf-8"));
+    const allDeps = {
+      ...pkg.dependencies,
+      ...pkg.devDependencies,
+      ...pkg.peerDependencies,
+    };
+    return (
+      "@react-router/dev" in allDeps ||
+      "@react-router/node" in allDeps ||
+      "@react-router/serve" in allDeps ||
+      "@remix-run/node" in allDeps ||
+      "@remix-run/serve" in allDeps
+    );
+  } catch {
+    return false;
+  }
+}
+
+export function createReactRouterAdapter(): FrameworkAdapter {
   return {
-    framework: "astro",
-    name: "Astro",
+    framework: "react-router",
+    name: "React Router",
 
     detect(projectDir: string): boolean {
       return (
-        existsSync(join(projectDir, "astro.config.mjs")) ||
-        existsSync(join(projectDir, "astro.config.ts")) ||
-        existsSync(join(projectDir, "astro.config.js")) ||
-        existsSync(join(projectDir, "astro.config.cjs"))
+        existsSync(join(projectDir, "react-router.config.ts")) ||
+        existsSync(join(projectDir, "react-router.config.js")) ||
+        existsSync(join(projectDir, "react-router.config.mjs")) ||
+        existsSync(join(projectDir, "remix.config.js")) ||
+        hasReactRouterDependency(projectDir)
       );
     },
 
     getStandaloneDir(projectDir: string): string {
-      return join(projectDir, "dist");
+      return join(projectDir, "build");
     },
 
     getDistDir(projectDir: string): string {
-      return join(projectDir, "dist");
+      return join(projectDir, "build");
     },
 
     getStaticAssetConfig(): StaticAssetConfig {
@@ -82,15 +106,13 @@ export function createAstroAdapter(): FrameworkAdapter {
       }
 
       if (prunedCount > 0) {
-        logInfo(`pruned ${prunedCount} unused files from Astro server output`);
+        logInfo(`pruned ${prunedCount} unused files from React Router server output`);
       }
 
       return results;
     },
 
     generateServerEntry(ctx: ServerEntryContext): string {
-      const isBunServe = ctx.engine === "bun-serve";
-
       const assetExtractions = ctx.assets.map((asset) => {
         let diskPath = toPosixPath(asset.relativePath);
         if (!asset.isRuntime) {
@@ -112,8 +134,10 @@ fs.mkdirSync(baseDir, { recursive: true });
 process.chdir(baseDir);
 process.env.NODE_ENV = "production";
 
-const publicPort = parseInt(process.env.PORT, 10) || 4321;
-const publicHost = process.env.HOST || process.env.HOSTNAME || "0.0.0.0";
+const port = parseInt(process.env.PORT, 10) || 3000;
+const host = process.env.HOST || process.env.HOSTNAME || "0.0.0.0";
+process.env.PORT = String(port);
+process.env.HOST = host;
 
 const extractions = ${JSON.stringify(assetExtractions)};
 const buildStamp = ${JSON.stringify(ctx.buildStamp)} + "\\n" + baseDir;
@@ -155,7 +179,7 @@ async function extractAssets() {
   await Promise.all(Array.from({ length: workerCount }, worker));
 
   fs.writeFileSync(manifestPath, buildStamp);
-  console.log(\`[kiln] extracted \${extractions.length} Astro assets to \${baseDir}\`);
+  console.log(\`[kiln] extracted \${extractions.length} React Router assets to \${baseDir}\`);
 }
 
 if (process.argv.includes("--extract")) {
@@ -171,61 +195,63 @@ if (process.argv.includes("--extract")) {
 } else {
   extractAssets()
     .then(async () => {
-      const isBunServeEngine = ${JSON.stringify(isBunServe)};
-      const entryFile = path.join(baseDir, "server", "entry.mjs");
-      if (!fs.existsSync(entryFile)) {
-        throw new Error(\`Astro server entry not found at: \${entryFile}\`);
+      const serverEntryPath = path.join(baseDir, "server", "index.js");
+      if (!fs.existsSync(serverEntryPath)) {
+        throw new Error(\`React Router server build not found at: \${serverEntryPath}\`);
       }
 
-      if (isBunServeEngine) {
-        const internalPort = 30000 + Math.floor(Math.random() * 20000);
-        process.env.PORT = String(internalPort);
-        process.env.HOST = "127.0.0.1";
+      const build = await import(pathToFileURL(serverEntryPath).href);
 
-        await import(pathToFileURL(entryFile).href);
-
-        Bun.serve({
-          port: publicPort,
-          hostname: publicHost,
-          async fetch(req) {
-            const url = new URL(req.url);
-            const pathname = url.pathname;
-
-            // Tier 1: Static assets from dist/client
-            const clientFilePath = path.join(baseDir, "client", pathname.slice(1));
-            const clientFile = Bun.file(clientFilePath);
-            if (pathname !== "/" && await clientFile.exists()) {
-              const isImmutable = pathname.startsWith("/_astro/");
-              return new Response(clientFile, {
-                headers: {
-                  "Cache-Control": isImmutable
-                    ? "public, max-age=31536000, immutable"
-                    : "public, max-age=3600",
-                },
-              });
-            }
-
-            // Tier 2: Dynamic Astro SSR route
-            const targetUrl = "http://127.0.0.1:" + internalPort + pathname + url.search;
-            return fetch(targetUrl, {
-              method: req.method,
-              headers: req.headers,
-              body: req.body,
-              redirect: "manual",
-            });
-          },
-        });
-
-        console.log(\`▲ Astro with Bun.serve engine listening on http://\${publicHost}:\${publicPort}\`);
+      // Support @react-router/node createRequestHandler or direct Web handler export
+      let handler;
+      if (typeof build.default === "function") {
+        handler = build.default;
+      } else if (typeof build.createRequestHandler === "function") {
+        handler = build.createRequestHandler(build);
       } else {
-        process.env.PORT = String(publicPort);
-        process.env.HOST = publicHost;
-
-        await import(pathToFileURL(entryFile).href);
+        try {
+          const { createRequestHandler } = await import("@react-router/node");
+          handler = createRequestHandler(build);
+        } catch {
+          try {
+            const { createRequestHandler } = await import("@remix-run/node");
+            handler = createRequestHandler(build);
+          } catch {
+            handler = (req) => new Response("Server handler not found", { status: 500 });
+          }
+        }
       }
+
+      Bun.serve({
+        port,
+        hostname: host,
+        async fetch(req) {
+          const url = new URL(req.url);
+          const pathname = url.pathname;
+
+          // Tier 1: Static assets from build/client
+          const clientFilePath = path.join(baseDir, "client", pathname.slice(1));
+          const clientFile = Bun.file(clientFilePath);
+          if (pathname !== "/" && await clientFile.exists()) {
+            const isImmutable = pathname.startsWith("/assets/");
+            return new Response(clientFile, {
+              headers: {
+                "Cache-Control": isImmutable
+                  ? "public, max-age=31536000, immutable"
+                  : "public, max-age=3600",
+              },
+            });
+          }
+
+          // Tier 2: Dynamic React Router SSR Handler
+          return handler(req);
+        },
+      });
+
+      console.log(\`▲ React Router listening on http://\${host}:\${port}\`);
     })
     .catch((error) => {
-      console.error("[kiln] Astro server startup failed:", error);
+      console.error("[kiln] React Router server startup failed:", error);
       process.exit(1);
     });
 }

@@ -17,7 +17,7 @@ No `node_modules` or Node.js runtime installation required on the target server.
 |---|---|---|
 | **Next.js (App & Pages Router)** | Supported (15+ & 16) | Native `adapterPath` hook |
 | **SvelteKit** | Planned | Adapter in roadmap |
-| **React Router / Remix** | Planned | Adapter in roadmap |
+| **React Router v7 / Remix** | Supported | Vite SSR / `build` standalone |
 | **TanStack Start** | Supported | Nitro / `.output` standalone |
 | **Astro** | Supported (5+) | `@astrojs/node` standalone |
 | **Nitro** | Planned | Adapter in roadmap |
