@@ -5,19 +5,19 @@
 # kiln-compiler
 
 [![npm version](https://img.shields.io/npm/v/kiln-compiler.svg?style=flat-square&color=CB3837)](https://www.npmjs.com/package/kiln-compiler)
-[![license](https://img.shields.io/npm/l/kiln-compiler.svg?style=flat-square&color=blue)](https://github.com/mohxmd/kiln/blob/main/LICENSE)
 [![Bun](https://img.shields.io/badge/Bun-%3E%3D1.0-FBF0DF?style=flat-square&logo=bun&logoColor=black)](https://bun.sh)
 [![Node](https://img.shields.io/badge/Node-%3E%3D20-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org)
 
 **Compile modern web framework applications into single self-contained native executables via [Bun](https://bun.sh).**
 
-> **Supported**: Next.js 15+ & 16 (App Router & Pages Router) â€¢ **Planned**: SvelteKit, React Router, TanStack Start, Astro, Nitro
+> **Supported**: Next.js 15+ & 16, Astro 5+ & 7+, TanStack Start, React Router v7 • **Planned**: SvelteKit, Nitro
 
 ---
 
 ## Features
 
 - **100% Self-Contained Binary**: Compiles SSR code, runtime chunks, and static assets into a single native binary. No `node_modules` or Node.js runtime needed on the host.
+- **Dual Runtime Engine**: Choose between the official framework server (`default`) or the high-speed in-memory static accelerator (`--engine bun-serve`) for 100k+ req/sec static asset delivery.
 - **Instant Cold Starts (<10ms)**: Fast-path SHA-256 build manifest check (`.kiln-extracted`) skips extraction on subsequent boots.
 - **Docker Optimized**: Pre-extract assets during `docker build` using `./server --extract` for instant container startup and zero runtime disk overhead.
 - **Optimized Binary Footprint**: Prunes dead build artifacts (sourcemaps, dev bundles, Webpack compiler engines) and Gzip-compresses embedded server assets.
@@ -75,14 +75,15 @@ next build && kiln -o ./bin/app
 kiln [options] [-- bun-build-flags...]
 ```
 
-| Flag | Default | Description |
-|---|---|---|
-| `-p, --project <dir>` | `.` | Project root directory containing build output |
-| `-o, --out <path>` | `./server` | Output executable path (e.g. `./bin/app`) |
-| `-f, --framework <name>` | *(auto-detect)* | Framework adapter to use (e.g. `next`) |
-| `-t, --target <target>` | *(host platform)* | Cross-compilation target (e.g. `bun-linux-x64`, `bun-windows-x64`) |
-| `--list-adapters` | | Show all registered framework adapters |
-| `-h, --help` | | Show CLI help menu |
+| Flag                     | Default           | Description                                                            |
+| ------------------------ | ----------------- | ---------------------------------------------------------------------- |
+| `-p, --project <dir>`    | `.`               | Project root directory containing build output                         |
+| `-o, --out <path>`       | `./server`        | Output executable path (e.g. `./bin/app`)                              |
+| `-f, --framework <name>` | _(auto-detect)_   | Framework adapter to use (`next`, `astro`, `tanstack`, `react-router`) |
+| `-e, --engine <engine>`  | `default`         | Runtime HTTP engine: `default` or `bun-serve`                          |
+| `-t, --target <target>`  | _(host platform)_ | Cross-compilation target (e.g. `bun-linux-x64`, `bun-windows-x64`)     |
+| `--list-adapters`        |                   | Show all registered framework adapters                                 |
+| `-h, --help`             |                   | Show CLI help menu                                                     |
 
 ### Cross-Compilation (Build for any OS)
 
@@ -98,12 +99,12 @@ kiln -o ./server-win.exe --target bun-windows-x64
 
 ## Runtime Environment Variables
 
-| Variable | Default | Description |
-|---|---|---|
-| `PORT` | `3000` | Server HTTP port |
-| `HOSTNAME` | `0.0.0.0` | Server bind hostname |
-| `KEEP_ALIVE_TIMEOUT` | â€” | HTTP keep-alive timeout in milliseconds |
-| `KILN_RUNTIME_DIR` | Binary directory | Runtime files extraction root (e.g. `/tmp/app` for RAM-backed tmpfs) |
+| Variable            | Default          | Description                                                          |
+| ------------------- | ---------------- | -------------------------------------------------------------------- |
+| `PORT`              | `3000`           | Server HTTP port                                                     |
+| `HOSTNAME` / `HOST` | `0.0.0.0`        | Server bind hostname                                                 |
+| `KILN_ENGINE`       | `default`        | Runtime server engine (`default` or `bun-serve`)                     |
+| `KILN_RUNTIME_DIR`  | Binary directory | Runtime files extraction root (e.g. `/tmp/app` for RAM-backed tmpfs) |
 
 ---
 
@@ -156,17 +157,15 @@ registerAdapter({ framework: "my-framework", create: () => myAdapter });
 ## Programmatic API
 
 ```ts
-import { compileApp, compileStandalone, generateEntryPoint } from "kiln-compiler";
+import {
+  compileApp,
+  compileStandalone,
+  generateEntryPoint,
+} from "kiln-compiler";
 ```
 
-| Function | Description |
-|---|---|
-| `compileApp(options)` | End-to-end orchestration: detect framework -> generate entrypoint -> compile binary |
-| `generateEntryPoint(options)` | Generates asset mapping manifest and server entrypoint using adapter |
-| `compileStandalone(options)` | Runs `bun build --compile` against standalone entrypoint |
-
----
-
-## License
-
-[MIT](LICENSE) Â© [Mohamed](https://github.com/mohxmd)
+| Function                      | Description                                                                         |
+| ----------------------------- | ----------------------------------------------------------------------------------- |
+| `compileApp(options)`         | End-to-end orchestration: detect framework -> generate entrypoint -> compile binary |
+| `generateEntryPoint(options)` | Generates asset mapping manifest and server entrypoint using adapter                |
+| `compileStandalone(options)`  | Runs `bun build --compile` against standalone entrypoint                            |
