@@ -1,4 +1,8 @@
-﻿# kiln-compiler
+<p align="center">
+  <img src="../../assets/logo.png" width="128" height="128" alt="Kiln Logo" />
+</p>
+
+# kiln-compiler
 
 [![npm version](https://img.shields.io/npm/v/kiln-compiler.svg?style=flat-square&color=CB3837)](https://www.npmjs.com/package/kiln-compiler)
 [![license](https://img.shields.io/npm/l/kiln-compiler.svg?style=flat-square&color=blue)](https://github.com/mohxmd/kiln/blob/main/LICENSE)

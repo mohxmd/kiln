@@ -8,6 +8,12 @@ export default defineConfig({
     starlight({
       title: "Kiln",
       description: "Compile web framework applications into single native Bun executables.",
+      logo: {
+        src: "./src/assets/logo.png",
+        alt: "Kiln Logo",
+        replacesTitle: false,
+      },
+      favicon: "/favicon.ico",
       social: [
         { icon: "github", label: "GitHub", href: "https://github.com/mohxmd/kiln" },
         { icon: "npm", label: "NPM", href: "https://www.npmjs.com/package/kiln-compiler" },
