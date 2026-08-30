@@ -12,7 +12,7 @@ description: What is Kiln and why compile web apps into native executables?
 Deploying fullstack JavaScript and TypeScript applications to servers, virtual machines, or minimal containers traditionally requires:
 
 1. **Large `node_modules` Directories**: Shipping thousands of small files to production creates slow I/O, heavy container layers, and permission complexities.
-2. **Runtime Host Dependencies**: Target machines must have matching versions of Node.js or Bun installed and configured on the system PATH.
+2. **Runtime Host Dependencies**: Traditional deployments require a compatible JavaScript runtime and a correctly installed dependency tree on the target machine.
 3. **Complex Cold Starts**: Starting dynamic servers from cold filesystems requires disk seeks across hundreds of dependencies before listening on ports.
 
 ---

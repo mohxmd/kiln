@@ -1,7 +1,3 @@
-<p align="center">
-  <img src="../../assets/logo.png" width="128" height="128" alt="Kiln Logo" />
-</p>
-
 # kiln-compiler
 
 [![npm version](https://img.shields.io/npm/v/kiln-compiler.svg?style=flat-square&color=CB3837)](https://www.npmjs.com/package/kiln-compiler)
@@ -9,6 +5,12 @@
 [![Node](https://img.shields.io/badge/Node-%3E%3D20-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org)
 
 **Compile modern web framework applications into single self-contained native executables via [Bun](https://bun.sh).**
+
+Kiln currently ships with the **Bun compiler backend (stable)**. The backend contract is intentionally replaceable; ScriptC support will be introduced as an experimental backend after it passes the same fixture and executable tests.
+
+This is the package-level guide for `kiln-compiler`. See the [root README](https://github.com/mohxmd/kiln#readme)
+for the project overview and contribution workflow, or the [documentation source](https://github.com/mohxmd/kiln/tree/main/apps/docs)
+for the full framework guides.
 
 > **Supported**: Next.js 15+ & 16, Astro 5+ & 7+, TanStack Start, React Router v7 • **Planned**: SvelteKit, Nitro
 
@@ -80,9 +82,11 @@ kiln [options] [-- bun-build-flags...]
 | `-p, --project <dir>`    | `.`               | Project root directory containing build output                         |
 | `-o, --out <path>`       | `./server`        | Output executable path (e.g. `./bin/app`)                              |
 | `-f, --framework <name>` | _(auto-detect)_   | Framework adapter to use (`next`, `astro`, `tanstack`, `react-router`) |
+| `-b, --backend <name>`   | `bun`              | Compiler backend to use                                                  |
 | `-e, --engine <engine>`  | `default`         | Runtime HTTP engine: `default` or `bun-serve`                          |
 | `-t, --target <target>`  | _(host platform)_ | Cross-compilation target (e.g. `bun-linux-x64`, `bun-windows-x64`)     |
 | `--list-adapters`        |                   | Show all registered framework adapters                                 |
+| `--list-backends`        |                   | Show all registered compiler backends                                  |
 | `-h, --help`             |                   | Show CLI help menu                                                     |
 
 ### Cross-Compilation (Build for any OS)

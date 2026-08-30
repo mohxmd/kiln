@@ -29,6 +29,18 @@ kiln [options] [-- bun-build-flags...]
 - **Description**: Explicitly set framework adapter (e.g. `next`, `astro`).
 - **Example**: `kiln -f next`
 
+### `-b, --backend <name>`
+
+- **Default**: `bun`
+- **Description**: Select the compiler backend. Bun is currently the stable backend; experimental backends are added only after they pass the same fixture and executable tests.
+- **Example**: `kiln --backend bun`
+
+### `-e, --engine <engine>`
+
+- **Default**: `default`
+- **Description**: Select the runtime HTTP server: `default` for the framework server or `bun-serve` for the in-memory static accelerator.
+- **Example**: `kiln --engine bun-serve`
+
 ### `-t, --target <target>`
 
 - **Default**: _(host platform)_
@@ -38,6 +50,10 @@ kiln [options] [-- bun-build-flags...]
 ### `--list-adapters`
 
 - **Description**: Lists all available registered framework adapters.
+
+### `--list-backends`
+
+- **Description**: Lists all available registered compiler backends.
 
 ### `-h, --help`
 
