@@ -1,5 +1,12 @@
 name: ci
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   pull_request:
     paths:
@@ -19,6 +26,8 @@ on:
       - "README.md"
       - "LICENSE"
       - "package.json"
+      - "tsconfig.json"
+      - "vite.config.ts"
       - "bun.lock"
   push:
     branches:
@@ -46,11 +55,8 @@ jobs:
       - name: Check
         run: bun run check
 
-      - name: Build compiler
+      - name: Build workspace
         run: bun run build
 
       - name: Run unit tests
         run: bun test packages/kiln/tests
-
-      - name: Build documentation
-        run: bun run docs:build
