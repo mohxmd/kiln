@@ -1,20 +1,36 @@
 {
-  "name": "kiln-monorepo",
+  "name": "kiln",
   "private": true,
-  "type": "module",
-  "packageManager": "bun@1.4.0",
   "workspaces": [
     "packages/*",
     "apps/*",
     "examples/*"
   ],
+  "type": "module",
   "scripts": {
-    "build": "bun --filter kiln-compiler build",
-    "check-types": "bun --filter kiln-compiler check-types",
+    "dev": "vp run -r dev",
+    "build": "vp run -r build",
+    "check-types": "vp run -r check-types",
     "check-types:test": "bun --filter kiln-compiler check-types:test",
-    "test": "bun --filter kiln-compiler test",
-    "check": "bun run check-types && bun run check-types:test && bun run test",
-    "docs:dev": "bun --filter docs dev",
-    "docs:build": "bun --filter docs build"
-  }
+    "check": "vp check && vp run -r check-types && bun run check-types:test",
+    "lint": "vp lint",
+    "format": "vp fmt",
+    "staged": "vp staged",
+    "hooks:setup": "vp config",
+    "test": "bun test packages/kiln/tests",
+    "docs:dev": "vp -C apps/docs dev",
+    "docs:build": "vp -C apps/docs build"
+  },
+  "devDependencies": {
+    "@kiln/config": "workspace:*",
+    "@types/node": "^25.3.0",
+    "rolldown": "1.2.6",
+    "typescript": "^6.0.3",
+    "vite-plus": "0.3.0"
+  },
+  "overrides": {
+    "vite": "npm:@voidzero-dev/vite-plus-core@0.3.0",
+    "vitest": "4.1.11"
+  },
+  "packageManager": "bun@1.4.0"
 }

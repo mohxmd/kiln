@@ -1,0 +1,3 @@
+{
+  "extends": "@kiln/config/tsconfig.base.json"
+}

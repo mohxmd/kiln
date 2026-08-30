@@ -2,33 +2,42 @@
 node_modules/
 package-lock.json
 yarn.lock
+pnpm-lock.yaml
 
 # Build outputs
 dist/
 .next/
 out/
 build/
+.output/
+.svelte-kit/
+.astro/
+.nitro/
+*.tsbuildinfo
+
+# Compiled binaries
+bin/
+server
+server.exe
+*.exe
 
 # Testing
-/coverage/
+coverage/
+.nyc_output/
 
-# Misc
-.DS_Store
-*.pem
+# Environment variables
 .env
 .env.*
 !.env.example
+
+# Deployment and tooling
 .vercel/
+.turbo/
+.nx/
+.cache/
+.alchemy/
 
-# Logs
-logs/
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-lerna-debug.log*
-
-# IDEs
+# Editors
 .vscode/
 .idea/
 *.suo
@@ -36,9 +45,22 @@ lerna-debug.log*
 *.njsproj
 *.sln
 
-# Compiled Binaries
-server
-server.exe
-*.exe
+# Logs
+logs/
+.evlog/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
 
-bin/
+# Misc
+.DS_Store
+*.pem
+*.swp
+*.swo
+*~
+*.tgz
+tmp/
+
+temp/
