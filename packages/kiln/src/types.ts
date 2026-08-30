@@ -21,6 +21,14 @@ export interface CompileAppOptions {
   projectDir: string;
   outputFile?: string;
   framework?: string;
+  backend?: string;
   engine?: "default" | "bun-serve";
   extraArgs?: readonly string[];
+}
+
+export interface CompileAppResult {
+  outputFile: string;
+  standaloneDir: string;
+  framework: string;
+  backend: string;
 }

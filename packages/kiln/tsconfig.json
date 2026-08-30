@@ -3,6 +3,7 @@
     "target": "ESNext",
     "module": "ESNext",
     "moduleResolution": "bundler",
+    "rootDir": "./src",
     "lib": ["ESNext"],
     "types": ["node"],
     "verbatimModuleSyntax": true,

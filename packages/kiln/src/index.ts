@@ -24,6 +24,18 @@ export type {
 export { compileApp } from "./core/compile-app.js";
 export { compileStandalone } from "./core/compile-standalone.js";
 export { generateEntryPoint } from "./core/generate-entry-point.js";
+export { createBunBackend } from "./backend/bun.js";
+export {
+  createBackendRegistry,
+  createDefaultBackendRegistry,
+} from "./backend/registry.js";
+export type {
+  BackendRegistry,
+  BackendStability,
+  CompileRequest,
+  CompileResult,
+  CompilerBackend,
+} from "./backend/types.js";
 export {
   GZ_EMBED_MIN_BYTES,
   isPrunableModuleFile,
@@ -32,6 +44,7 @@ export {
 export type {
   BuildContext,
   CompileAppOptions,
+  CompileAppResult,
   CompileStandaloneOptions,
 } from "./types.js";
 

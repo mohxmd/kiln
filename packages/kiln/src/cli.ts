@@ -7,6 +7,7 @@
 import { resolve } from "node:path";
 
 import { listAdapters } from "./adapter/registry.js";
+import { createDefaultBackendRegistry } from "./backend/registry.js";
 import { compileApp } from "./core/compile-app.js";
 import { logError, logInfo } from "./utils/log.js";
 
@@ -18,13 +19,15 @@ Usage:
   kiln [options] [-- bun-build-flags...]
 
 Options:
-  -p, --project <dir>      Project root directory (default: ".")
-  -o, --out <path>         Output binary path (default: "./server")
-  -f, --framework <name>   Framework adapter to use (auto-detected if omitted)
-  -e, --engine <engine>    Runtime HTTP server engine: "default" | "bun-serve" (default: "default")
-  -t, --target <target>    Cross-compilation target (e.g. bun-linux-x64, bun-windows-x64)
-  --list-adapters          List all registered framework adapters
-  -h, --help               Show this help message
+	-p, --project <dir>      Project root directory (default: ".")
+	-o, --out <path>         Output binary path (default: "./server")
+	-f, --framework <name>   Framework adapter to use (auto-detected if omitted)
+	-b, --backend <name>     Compiler backend to use (default: "bun")
+	-e, --engine <engine>    Runtime HTTP server engine: "default" | "bun-serve" (default: "default")
+	-t, --target <target>    Cross-compilation target (e.g. bun-linux-x64, bun-windows-x64)
+	--list-adapters          List all registered framework adapters
+	--list-backends          List all registered compiler backends
+	-h, --help               Show this help message
 
 Examples:
   kiln
@@ -39,12 +42,14 @@ function parseArgs(argv: string[]): {
   projectDir: string;
   outputFile?: string;
   framework?: string;
+  backend?: string;
   engine?: "default" | "bun-serve";
   extraArgs: string[];
 } {
   let projectDir = ".";
   let outputFile: string | undefined;
   let framework: string | undefined;
+  let backend: string | undefined;
   let engine: "default" | "bun-serve" | undefined = (process.env.KILN_ENGINE as "default" | "bun-serve") || "default";
   const extraArgs: string[] = [];
 
@@ -86,6 +91,16 @@ function parseArgs(argv: string[]): {
       i += 1;
       continue;
     }
+    if (arg === "--backend" || arg === "-b") {
+      const val = argv[i + 1];
+      if (!val || val.startsWith("-")) {
+        logError("--backend requires a compiler backend name");
+        process.exit(1);
+      }
+      backend = val;
+      i += 1;
+      continue;
+    }
     if (arg === "--engine" || arg === "-e") {
       const val = argv[i + 1];
       if (val !== "default" && val !== "bun-serve") {
@@ -111,10 +126,15 @@ function parseArgs(argv: string[]): {
       console.log(`Available adapters: ${adapters.join(", ") || "(none)"}`);
       process.exit(0);
     }
+    if (arg === "--list-backends") {
+      const backends = createDefaultBackendRegistry().list();
+      console.log(`Available backends: ${backends.join(", ") || "(none)"}`);
+      process.exit(0);
+    }
     extraArgs.push(arg);
   }
 
-  return { projectDir: resolve(projectDir), outputFile, framework, engine, extraArgs };
+  return { projectDir: resolve(projectDir), outputFile, framework, backend, engine, extraArgs };
 }
 
 function main(): void {
@@ -124,10 +144,11 @@ function main(): void {
       projectDir: parsed.projectDir,
       outputFile: parsed.outputFile,
       framework: parsed.framework,
+      backend: parsed.backend,
       engine: parsed.engine,
       extraArgs: parsed.extraArgs,
     });
-    logInfo(`binary ready at ${result.outputFile} (${result.framework})`);
+    logInfo(`binary ready at ${result.outputFile} (${result.framework}, ${result.backend} backend)`);
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "unknown compiler failure";
