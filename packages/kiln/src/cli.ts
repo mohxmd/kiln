@@ -43,6 +43,7 @@ function parseArgs(argv: string[]): {
   outputFile?: string;
   framework?: string;
   backend?: string;
+  target?: string;
   engine?: "default" | "bun-serve";
   extraArgs: string[];
 } {
@@ -50,7 +51,9 @@ function parseArgs(argv: string[]): {
   let outputFile: string | undefined;
   let framework: string | undefined;
   let backend: string | undefined;
-  let engine: "default" | "bun-serve" | undefined = (process.env.KILN_ENGINE as "default" | "bun-serve") || "default";
+  let target: string | undefined;
+  let engine: "default" | "bun-serve" | undefined =
+    (process.env.KILN_ENGINE as "default" | "bun-serve") || "default";
   const extraArgs: string[] = [];
 
   for (let i = 0; i < argv.length; i += 1) {
@@ -117,7 +120,7 @@ function parseArgs(argv: string[]): {
         logError("--target requires a compilation target (e.g. bun-linux-x64)");
         process.exit(1);
       }
-      extraArgs.push(`--target=${val}`);
+      target = val;
       i += 1;
       continue;
     }
@@ -134,7 +137,15 @@ function parseArgs(argv: string[]): {
     extraArgs.push(arg);
   }
 
-  return { projectDir: resolve(projectDir), outputFile, framework, backend, engine, extraArgs };
+  return {
+    projectDir: resolve(projectDir),
+    outputFile,
+    framework,
+    backend,
+    target,
+    engine,
+    extraArgs,
+  };
 }
 
 function main(): void {
@@ -145,10 +156,13 @@ function main(): void {
       outputFile: parsed.outputFile,
       framework: parsed.framework,
       backend: parsed.backend,
+      target: parsed.target,
       engine: parsed.engine,
       extraArgs: parsed.extraArgs,
     });
-    logInfo(`binary ready at ${result.outputFile} (${result.framework}, ${result.backend} backend)`);
+    logInfo(
+      `binary ready at ${result.outputFile} (${result.framework}, ${result.backend} backend)`,
+    );
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "unknown compiler failure";

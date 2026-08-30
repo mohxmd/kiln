@@ -16,7 +16,9 @@ import { generateEntryPoint } from "./generate-entry-point.js";
 export function compileApp(options: CompileAppOptions): CompileAppResult {
   const projectDir = resolve(options.projectDir);
   const adapter = resolveAdapter(projectDir, options.framework);
-  const backend = createDefaultBackendRegistry().resolve(options.backend ?? "bun");
+  const backend = createDefaultBackendRegistry().resolve(
+    options.backend ?? "bun",
+  );
 
   const distDir = adapter.getDistDir(projectDir);
   const standaloneDir = adapter.getStandaloneDir(projectDir);
@@ -38,14 +40,24 @@ export function compileApp(options: CompileAppOptions): CompileAppResult {
   backend.compile({
     entrypoint: join(standaloneDir, GENERATED_SERVER_ENTRY_FILE),
     outputFile,
+    target: options.target,
+    workingDirectory: projectDir,
     extraArgs: options.extraArgs,
     defines: adapter.getBuildDefines(),
   });
 
-  return { outputFile, standaloneDir, framework: adapter.framework, backend: backend.id };
+  return {
+    outputFile,
+    standaloneDir,
+    framework: adapter.framework,
+    backend: backend.id,
+  };
 }
 
-function resolveAdapter(projectDir: string, framework?: string): FrameworkAdapter {
+function resolveAdapter(
+  projectDir: string,
+  framework?: string,
+): FrameworkAdapter {
   if (framework) {
     const adapter = getAdapter(framework);
     if (!adapter) {

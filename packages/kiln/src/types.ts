@@ -22,6 +22,7 @@ export interface CompileAppOptions {
   outputFile?: string;
   framework?: string;
   backend?: string;
+  target?: string;
   engine?: "default" | "bun-serve";
   extraArgs?: readonly string[];
 }

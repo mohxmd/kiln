@@ -32,7 +32,7 @@ kiln [options] [-- bun-build-flags...]
 ### `-b, --backend <name>`
 
 - **Default**: `bun`
-- **Description**: Select the compiler backend. Bun is currently the stable backend; experimental backends are added only after they pass the same fixture and executable tests.
+- **Description**: Select the compiler backend. Bun is stable; ScriptC is experimental and currently limited to native compiler probing while Kiln's generated runtime is being made portable.
 - **Example**: `kiln --backend bun`
 
 ### `-e, --engine <engine>`
@@ -46,6 +46,11 @@ kiln [options] [-- bun-build-flags...]
 - **Default**: _(host platform)_
 - **Description**: Target cross-compilation platform.
 - **Example**: `kiln -t bun-linux-x64`
+
+The target is translated for the selected backend. Bun receives a `--target`
+flag. ScriptC receives `SCRIPTC_TARGET` and requires `SCRIPTC_CC=zigcc` for
+cross-compilation. Kiln currently rejects `wasm32-wasi` because its generated
+HTTP runtime does not yet have a portable WASI host.
 
 ### `--list-adapters`
 

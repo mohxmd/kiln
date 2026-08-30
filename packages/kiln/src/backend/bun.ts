@@ -50,10 +50,7 @@ function resolveBunExecutable(): string {
   return "bun";
 }
 
-function runBunCommand(
-  executable: string,
-  args: readonly string[],
-): void {
+function runBunCommand(executable: string, args: readonly string[]): void {
   execFileSync(executable, [...args], { stdio: "inherit" });
 }
 
@@ -62,7 +59,9 @@ function compileWithBun(
   runCommand: BunCommandRunner,
 ): CompileResult {
   if (!existsSync(request.entrypoint)) {
-    throw new Error(`kiln: generated entrypoint not found at ${request.entrypoint}`);
+    throw new Error(
+      `kiln: generated entrypoint not found at ${request.entrypoint}`,
+    );
   }
 
   const defineArgs = (request.defines ?? []).flatMap((define) => [
@@ -71,7 +70,7 @@ function compileWithBun(
   ]);
 
   const extraArgs = request.extraArgs ?? [];
-  const targetEnv = process.env.KILN_TARGET;
+  const targetEnv = request.target ?? process.env.KILN_TARGET;
   const hasTargetFlag = extraArgs.some(
     (arg) => arg === "--target" || arg.startsWith("--target="),
   );
@@ -132,4 +131,3 @@ export function createBunBackend(
 export function getBunEntrypoint(standaloneDir: string): string {
   return join(standaloneDir, GENERATED_SERVER_ENTRY_FILE);
 }
-

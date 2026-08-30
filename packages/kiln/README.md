@@ -6,7 +6,10 @@
 
 **Compile modern web framework applications into single self-contained native executables via [Bun](https://bun.sh).**
 
-Kiln currently ships with the **Bun compiler backend (stable)**. The backend contract is intentionally replaceable; ScriptC support will be introduced as an experimental backend after it passes the same fixture and executable tests.
+Kiln currently ships with the **Bun compiler backend (stable)**. An
+experimental **ScriptC backend** is available for native compiler probing;
+framework-generated runtimes still require the portable runtime work before
+they can be considered ScriptC-compatible.
 
 This is the package-level guide for `kiln-compiler`. See the [root README](https://github.com/mohxmd/kiln#readme)
 for the project overview and contribution workflow, or the [documentation source](https://github.com/mohxmd/kiln/tree/main/apps/docs)
@@ -88,6 +91,11 @@ kiln [options] [-- bun-build-flags...]
 | `--list-adapters`        |                   | Show all registered framework adapters                                 |
 | `--list-backends`        |                   | Show all registered compiler backends                                  |
 | `-h, --help`             |                   | Show CLI help menu                                                     |
+
+The `--target` value is translated for the selected backend. Bun receives a
+`--target` flag; ScriptC receives `SCRIPTC_TARGET`. ScriptC native
+cross-compilation requires `SCRIPTC_CC=zigcc`. `wasm32-wasi` is not supported
+by Kiln yet because the generated server still requires a portable HTTP host.
 
 ### Cross-Compilation (Build for any OS)
 

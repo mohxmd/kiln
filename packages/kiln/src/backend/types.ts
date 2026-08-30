@@ -12,6 +12,10 @@ export interface CompileRequest {
   readonly entrypoint: string;
   /** Output executable path. */
   readonly outputFile: string;
+  /** Optional target translated into the backend's target configuration. */
+  readonly target?: string;
+  /** Working directory used for compiler module and config resolution. */
+  readonly workingDirectory?: string;
   /** Backend-neutral compiler defines, when supported by the backend. */
   readonly defines?: readonly string[];
   /** Additional backend CLI arguments preserved for compatibility. */
@@ -34,4 +38,3 @@ export interface BackendRegistry {
   resolve(id: string): CompilerBackend;
   list(): readonly string[];
 }
-

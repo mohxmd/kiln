@@ -3,6 +3,7 @@
  */
 
 import { createBunBackend } from "./bun.js";
+import { createScriptCBackend } from "./scriptc.js";
 import type { BackendRegistry, CompilerBackend } from "./types.js";
 
 export function createBackendRegistry(
@@ -41,6 +42,5 @@ export function createBackendRegistry(
 }
 
 export function createDefaultBackendRegistry(): BackendRegistry {
-  return createBackendRegistry([createBunBackend()]);
+  return createBackendRegistry([createBunBackend(), createScriptCBackend()]);
 }
-

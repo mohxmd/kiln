@@ -3,7 +3,10 @@
  */
 
 // Adapter API
-export { createNextAdapter, createNextBuildHook } from "./adapter/next/index.js";
+export {
+  createNextAdapter,
+  createNextBuildHook,
+} from "./adapter/next/index.js";
 export type { NextBuildHook } from "./adapter/next/index.js";
 export {
   detectFramework,
@@ -25,6 +28,7 @@ export { compileApp } from "./core/compile-app.js";
 export { compileStandalone } from "./core/compile-standalone.js";
 export { generateEntryPoint } from "./core/generate-entry-point.js";
 export { createBunBackend } from "./backend/bun.js";
+export { createScriptCBackend } from "./backend/scriptc.js";
 export {
   createBackendRegistry,
   createDefaultBackendRegistry,
