@@ -11,6 +11,7 @@ export default defineConfig({
       "**/build/**",
       "**/coverage/**",
       "**/dist/**",
+      "examples/with-tanstack/src/routeTree.gen.ts",
       "temp/**",
     ],
     options: {
@@ -28,6 +29,7 @@ export default defineConfig({
       "**/build/**",
       "**/coverage/**",
       "**/dist/**",
+      "examples/with-tanstack/src/routeTree.gen.ts",
       "temp/**",
     ],
     singleQuote: false,
