@@ -38,7 +38,7 @@ Examples:
 `);
 }
 
-function parseArgs(argv: string[]): {
+export interface CliOptions {
   projectDir: string;
   outputFile?: string;
   framework?: string;
@@ -46,14 +46,22 @@ function parseArgs(argv: string[]): {
   target?: string;
   engine?: "default" | "bun-serve";
   extraArgs: string[];
-} {
+}
+
+export function parseArgs(argv: string[]): CliOptions {
   let projectDir = ".";
   let outputFile: string | undefined;
   let framework: string | undefined;
   let backend: string | undefined;
   let target: string | undefined;
-  let engine: "default" | "bun-serve" | undefined =
-    (process.env.KILN_ENGINE as "default" | "bun-serve") || "default";
+  const configuredEngine = process.env.KILN_ENGINE;
+  let engine: "default" | "bun-serve" = "default";
+  if (configuredEngine === "default" || configuredEngine === "bun-serve") {
+    engine = configuredEngine;
+  } else if (configuredEngine) {
+    logError('--engine must be either "default" or "bun-serve"');
+    process.exit(1);
+  }
   const extraArgs: string[] = [];
 
   for (let i = 0; i < argv.length; i += 1) {
@@ -134,6 +142,10 @@ function parseArgs(argv: string[]): {
       console.log(`Available backends: ${backends.join(", ") || "(none)"}`);
       process.exit(0);
     }
+    if (arg === "--") {
+      extraArgs.push(...argv.slice(i + 1));
+      break;
+    }
     extraArgs.push(arg);
   }
 
@@ -148,7 +160,7 @@ function parseArgs(argv: string[]): {
   };
 }
 
-function main(): void {
+export function main(): void {
   try {
     const parsed = parseArgs(process.argv.slice(2));
     const result = compileApp({
@@ -171,4 +183,4 @@ function main(): void {
   }
 }
 
-main();
+if (import.meta.main) main();

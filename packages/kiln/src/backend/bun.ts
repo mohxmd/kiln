@@ -21,7 +21,12 @@ import type {
 export type BunCommandRunner = (
   executable: string,
   args: readonly string[],
+  options?: BunCommandOptions,
 ) => void;
+
+export interface BunCommandOptions {
+  readonly cwd?: string;
+}
 
 export interface BunBackendOptions {
   /** Injectable command runner for unit tests and embedders. */
@@ -50,8 +55,15 @@ function resolveBunExecutable(): string {
   return "bun";
 }
 
-function runBunCommand(executable: string, args: readonly string[]): void {
-  execFileSync(executable, [...args], { stdio: "inherit" });
+function runBunCommand(
+  executable: string,
+  args: readonly string[],
+  options?: BunCommandOptions,
+): void {
+  execFileSync(executable, [...args], {
+    stdio: "inherit",
+    cwd: options?.cwd,
+  });
 }
 
 function compileWithBun(
@@ -92,7 +104,7 @@ function compileWithBun(
   logInfo(`compiling Bun native binary to ${request.outputFile}`);
 
   try {
-    runCommand(executable, args);
+    runCommand(executable, args, { cwd: request.workingDirectory });
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === "ENOENT") {
       logError(
