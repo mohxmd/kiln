@@ -1,8 +1,8 @@
-import { json } from '@sveltejs/kit';
+import { json } from "@sveltejs/kit";
 
 export function GET() {
-	return json({
-		status: 'ok',
-		framework: 'sveltekit'
-	});
+  return json({
+    status: "ok",
+    framework: "sveltekit",
+  });
 }

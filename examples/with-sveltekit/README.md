@@ -13,7 +13,7 @@ bun run dev
 ## Build and compile
 
 ```bash
-bun run check
+bun run check-types
 bun run build
 bun run compile
 PORT=3000 ./bin/app

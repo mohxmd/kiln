@@ -5,12 +5,10 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "check": "tsc --noEmit",
+    "check-types": "tsc --noEmit",
     "compile": "kiln -o ./bin/app",
     "build:compile": "next build && kiln -o ./bin/app",
-    "start": "next start",
-    "lint": "biome check",
-    "format": "biome format --write"
+    "start": "next start"
   },
   "dependencies": {
     "next": "16.3.2",
@@ -18,7 +16,6 @@
     "react-dom": "19.2.8"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.4.2",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

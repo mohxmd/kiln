@@ -1,6 +1,6 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute } from "@tanstack/react-router";
 
-export const Route = createFileRoute('/')({ component: Home })
+export const Route = createFileRoute("/")({ component: Home });
 
 function Home() {
   return (
@@ -24,7 +24,8 @@ function Home() {
         </h1>
 
         <p className="mt-4 max-w-lg text-base text-zinc-400 sm:text-lg">
-          This TanStack Start application, powered by Nitro and React 19, is running directly from a single native standalone executable binary.
+          This TanStack Start application, powered by Nitro and React 19, is running directly from a
+          single native standalone executable binary.
         </p>
 
         <div className="mt-8 grid w-full grid-cols-1 gap-4 text-left sm:grid-cols-2">
@@ -63,5 +64,5 @@ function Home() {
         </div>
       </main>
     </div>
-  )
+  );
 }
