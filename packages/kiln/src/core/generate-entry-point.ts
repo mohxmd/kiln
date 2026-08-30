@@ -27,7 +27,7 @@ import { walkDir } from "../utils/fs.js";
 import { logInfo } from "../utils/log.js";
 import { toPosixPath } from "../utils/path.js";
 import { tryReadBuildContext } from "./build-context.js";
-import { shouldCompressEmbeddedAsset } from "./prune.js";
+import { GZ_EMBED_MIN_BYTES, shouldCompressEmbeddedAsset } from "./prune.js";
 import { generateStubs } from "./stubs.js";
 
 export interface GenerateEntryPointOptions {
@@ -94,7 +94,13 @@ export const gzippedAssets = new Set(${gzippedList});
 }
 
 export function generateEntryPoint(options: GenerateEntryPointOptions): void {
-  const { standaloneDir, distDir, projectDir, adapter, engine = "default" } = options;
+  const {
+    standaloneDir,
+    distDir,
+    projectDir,
+    adapter,
+    engine = "default",
+  } = options;
 
   // Generate fallback stubs for optional or dev-only imports
   generateStubs(standaloneDir, adapter.getStubs());
@@ -156,7 +162,7 @@ export function generateEntryPoint(options: GenerateEntryPointOptions): void {
 
     try {
       const stat = statSync(asset.absolutePath);
-      if (stat.size < 8192) continue; // Only compress text files >= 8KB
+      if (stat.size < GZ_EMBED_MIN_BYTES) continue;
 
       const raw = readFileSync(asset.absolutePath);
       const gz = gzipSync(raw, { level: 1 }); // Fast compression level
@@ -179,13 +185,14 @@ export function generateEntryPoint(options: GenerateEntryPointOptions): void {
     );
   }
 
-  // Fast deterministic build stamp based on file path and stat
+  // Content-based build stamp used to invalidate the extraction manifest.
+  // A reused runtime directory must not keep stale files after a same-size
+  // asset edit or a rebuild that preserves source mtimes.
   const hasher = createHash("sha256");
   for (const asset of assetsToEmbed) {
     hasher.update(asset.urlPath);
     try {
-      const stat = statSync(asset.absolutePath);
-      hasher.update(String(stat.size));
+      hasher.update(readFileSync(asset.absolutePath));
     } catch {}
   }
   const buildStamp = hasher.digest("hex");

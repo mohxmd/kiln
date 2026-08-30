@@ -7,11 +7,12 @@ import {
   mkdirSync,
   readdirSync,
   readFileSync,
+  realpathSync,
   statSync,
   writeFileSync,
   type Stats,
 } from "node:fs";
-import { join, relative } from "node:path";
+import { dirname, join, relative } from "node:path";
 
 export interface WalkedFile {
   absolutePath: string;
@@ -36,23 +37,35 @@ export function tryStat(p: string): Stats | null {
  * Recursively walk directory and return all real files.
  * Uses an internal accumulator to avoid quadratic array spread copies.
  */
-export function walkDir(
-  dir: string,
-  base: string = dir,
-): WalkedFile[] {
+export function walkDir(dir: string, base: string = dir): WalkedFile[] {
   const results: WalkedFile[] = [];
   if (!existsSync(dir)) return results;
-  walkDirInto(results, dir, base);
+  walkDirInto(results, dir, base, new Set<string>());
   return results;
 }
 
-function walkDirInto(out: WalkedFile[], dir: string, base: string): void {
+function walkDirInto(
+  out: WalkedFile[],
+  dir: string,
+  base: string,
+  visitedDirectories: Set<string>,
+): void {
+  let realDir: string;
+  try {
+    realDir = realpathSync(dir);
+  } catch {
+    return;
+  }
+  if (visitedDirectories.has(realDir)) return;
+  visitedDirectories.add(realDir);
+
   let entries: string[];
   try {
     entries = readdirSync(dir);
   } catch {
     return;
   }
+  entries.sort();
 
   for (const entry of entries) {
     const fullPath = join(dir, entry);
@@ -60,7 +73,7 @@ function walkDirInto(out: WalkedFile[], dir: string, base: string): void {
     if (!stat) continue;
 
     if (stat.isDirectory()) {
-      walkDirInto(out, fullPath, base);
+      walkDirInto(out, fullPath, base, visitedDirectories);
     } else {
       out.push({
         absolutePath: fullPath,
@@ -108,14 +121,25 @@ export function findPackageDirs(standaloneDir: string, pkg: string): string[] {
 
   // Directories that never contain nested node_modules — skip to avoid wasted I/O
   const SKIP_DIRS = new Set(["cache", "trace", ".git", ".cache", "static"]);
+  const visitedDirectories = new Set<string>();
 
   const walk = (dir: string) => {
+    let realDir: string;
+    try {
+      realDir = realpathSync(dir);
+    } catch {
+      return;
+    }
+    if (visitedDirectories.has(realDir)) return;
+    visitedDirectories.add(realDir);
+
     let entries: string[];
     try {
       entries = readdirSync(dir);
     } catch {
       return;
     }
+    entries.sort();
     for (const entry of entries) {
       if (SKIP_DIRS.has(entry)) continue;
       const full = join(dir, entry);
@@ -133,12 +157,12 @@ export function findPackageDirs(standaloneDir: string, pkg: string): string[] {
 }
 
 export function ensureDirForFile(filePath: string): void {
-  const parentDir = join(filePath, "..");
+  const parentDir = dirname(filePath);
   if (!existsSync(parentDir)) mkdirSync(parentDir, { recursive: true });
 }
 
 export function writeJsonFile(path: string, value: unknown): void {
-  writeFileSync(path, JSON.stringify(value, null, 2));
+  writeFileSync(path, `${JSON.stringify(value, null, 2)}\n`);
 }
 
 export function readJsonFile<T>(path: string): T {
