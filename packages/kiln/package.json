@@ -2,8 +2,34 @@
   "name": "kiln-compiler",
   "version": "0.1.0",
   "description": "Compile framework apps into native Bun executables.",
+  "keywords": [
+    "adapter",
+    "bun",
+    "compiler",
+    "kiln",
+    "nextjs",
+    "standalone"
+  ],
+  "homepage": "https://github.com/mohxmd/kiln#readme",
+  "bugs": {
+    "url": "https://github.com/mohxmd/kiln/issues"
+  },
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mohxmd/kiln.git",
+    "directory": "packages/kiln"
+  },
+  "bin": {
+    "kiln": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "type": "module",
+  "sideEffects": false,
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -17,14 +43,9 @@
       "default": "./dist/cli.js"
     }
   },
-  "bin": {
-    "kiln": "./dist/cli.js"
+  "publishConfig": {
+    "access": "public"
   },
-  "files": [
-    "dist",
-    "README.md",
-    "LICENSE"
-  ],
   "scripts": {
     "clean": "bun -e \"import { rmSync } from 'node:fs'; rmSync('dist', { recursive: true, force: true })\"",
     "build": "bun run clean && tsc --project tsconfig.json && bun -e \"import { chmodSync } from 'node:fs'; chmodSync('dist/cli.js', 0o755)\"",
@@ -34,31 +55,6 @@
     "prepack": "bun run build",
     "prepublishOnly": "bun run build"
   },
-  "keywords": [
-    "nextjs",
-    "bun",
-    "compiler",
-    "adapter",
-    "standalone",
-    "kiln"
-  ],
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/mohxmd/kiln.git",
-    "directory": "packages/kiln"
-  },
-  "bugs": {
-    "url": "https://github.com/mohxmd/kiln/issues"
-  },
-  "homepage": "https://github.com/mohxmd/kiln#readme",
-  "publishConfig": {
-    "access": "public"
-  },
-  "engines": {
-    "node": ">=20",
-    "bun": ">=1.0"
-  },
-  "sideEffects": false,
   "devDependencies": {
     "@types/bun": "latest",
     "@types/node": "^25.3.0",
@@ -71,5 +67,9 @@
     "next": {
       "optional": true
     }
+  },
+  "engines": {
+    "bun": ">=1.0",
+    "node": ">=20"
   }
 }

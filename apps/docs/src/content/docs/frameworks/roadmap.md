@@ -9,14 +9,14 @@ Kiln is designed from the ground up as a universal framework compiler.
 
 ## Roadmap Matrix
 
-| Framework                   | Status          | Target Timeline | Notes                                      |
-| --------------------------- | --------------- | --------------- | ------------------------------------------ |
-| **Next.js**                 | ✅ Supported    | Current         | App Router & Pages Router (15+ / 16)       |
-| **Astro**                   | ✅ Supported    | Current         | `@astrojs/node` standalone (5+ / 7+)       |
-| **React Router v7 / Remix** | ⏳ Planned      | Q3 2026         | Vite SSR handler                           |
-| **SvelteKit**               | 🧪 Experimental | Current         | `@sveltejs/adapter-node` default `build`  |
-| **TanStack Start**          | ⏳ Planned      | Q4 2026         | Nitro / Vite output                        |
-| **Nitro / Nuxt**            | ⏳ Planned      | Q4 2026         | Nitro node-server preset                   |
+| Framework                   | Status          | Target Timeline | Notes                                    |
+| --------------------------- | --------------- | --------------- | ---------------------------------------- |
+| **Next.js**                 | ✅ Supported    | Current         | App Router & Pages Router (15+ / 16)     |
+| **Astro**                   | ✅ Supported    | Current         | `@astrojs/node` standalone (5+ / 7+)     |
+| **React Router v7 / Remix** | ⏳ Planned      | Q3 2026         | Vite SSR handler                         |
+| **SvelteKit**               | 🧪 Experimental | Current         | `@sveltejs/adapter-node` default `build` |
+| **TanStack Start**          | ⏳ Planned      | Q4 2026         | Nitro / Vite output                      |
+| **Nitro / Nuxt**            | ⏳ Planned      | Q4 2026         | Nitro node-server preset                 |
 
 ---
 

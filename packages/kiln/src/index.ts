@@ -4,18 +4,10 @@
 
 // Adapter API
 export { createAstroAdapter } from "./adapter/astro/index.js";
-export {
-  createNextAdapter,
-  createNextBuildHook,
-} from "./adapter/next/index.js";
+export { createNextAdapter, createNextBuildHook } from "./adapter/next/index.js";
 export type { NextBuildHook } from "./adapter/next/index.js";
 export { createReactRouterAdapter } from "./adapter/react-router/index.js";
-export {
-  detectFramework,
-  getAdapter,
-  listAdapters,
-  registerAdapter,
-} from "./adapter/registry.js";
+export { detectFramework, getAdapter, listAdapters, registerAdapter } from "./adapter/registry.js";
 export { createSvelteKitAdapter } from "./adapter/sveltekit/index.js";
 export { createTanStackAdapter } from "./adapter/tanstack/index.js";
 export type {
@@ -32,21 +24,14 @@ export { compileApp } from "./core/compile-app.js";
 export { compileStandalone } from "./core/compile-standalone.js";
 export { generateEntryPoint } from "./core/generate-entry-point.js";
 export { createBunBackend } from "./backend/bun.js";
-export type {
-  BunBackendOptions,
-  BunCommandOptions,
-  BunCommandRunner,
-} from "./backend/bun.js";
+export type { BunBackendOptions, BunCommandOptions, BunCommandRunner } from "./backend/bun.js";
 export { createScriptCBackend } from "./backend/scriptc.js";
 export type {
   ScriptCBackendOptions,
   ScriptCCommandOptions,
   ScriptCCommandRunner,
 } from "./backend/scriptc.js";
-export {
-  createBackendRegistry,
-  createDefaultBackendRegistry,
-} from "./backend/registry.js";
+export { createBackendRegistry, createDefaultBackendRegistry } from "./backend/registry.js";
 export type {
   BackendRegistry,
   BackendStability,

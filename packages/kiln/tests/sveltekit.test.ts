@@ -6,10 +6,7 @@ import { createSvelteKitAdapter } from "../src/adapter/sveltekit/index.js";
 import { getAdapter } from "../src/adapter/registry.js";
 import { withTempDir } from "./helpers/temp-dir.js";
 
-function createProject(
-  projectDir: string,
-  withSvelteKitDependencies: boolean,
-): void {
+function createProject(projectDir: string, withSvelteKitDependencies: boolean): void {
   writeFileSync(
     join(projectDir, "package.json"),
     JSON.stringify({
@@ -37,9 +34,7 @@ describe("adapter/sveltekit", () => {
     const adapter = createSvelteKitAdapter();
     const projectDir = "/tmp/sveltekit-app";
 
-    expect(adapter.getStandaloneDir(projectDir)).toBe(
-      "/tmp/sveltekit-app/build",
-    );
+    expect(adapter.getStandaloneDir(projectDir)).toBe("/tmp/sveltekit-app/build");
     expect(adapter.getDistDir(projectDir)).toBe("/tmp/sveltekit-app/build");
     expect(adapter.getStaticAssetConfig()).toEqual({
       dir: "client",

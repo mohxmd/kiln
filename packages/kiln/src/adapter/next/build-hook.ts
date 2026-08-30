@@ -32,10 +32,7 @@ interface OnBuildCompleteContext {
 
 export interface NextBuildHook {
   name: string;
-  modifyConfig: (
-    config: NextLikeConfig,
-    context?: AdapterContext,
-  ) => NextLikeConfig;
+  modifyConfig: (config: NextLikeConfig, context?: AdapterContext) => NextLikeConfig;
   onBuildComplete: (context: OnBuildCompleteContext) => Promise<void>;
 }
 
@@ -52,14 +49,7 @@ function mergeTranspilePackages(config: NextLikeConfig): string[] {
   const existing = config.transpilePackages ?? [];
   const fromConfig = config.nextRuntimeCompiler?.transpilePackages ?? [];
   const fromEnv = parseEnvTranspilePackages();
-  return [
-    ...new Set([
-      ...existing,
-      ...KNOWN_TRANSPILE_PACKAGES,
-      ...fromConfig,
-      ...fromEnv,
-    ]),
-  ];
+  return [...new Set([...existing, ...KNOWN_TRANSPILE_PACKAGES, ...fromConfig, ...fromEnv])];
 }
 
 export function createNextBuildHook(): NextBuildHook {
@@ -68,17 +58,13 @@ export function createNextBuildHook(): NextBuildHook {
 
     modifyConfig(config, context) {
       if (!context) {
-        throw new Error(
-          "[kiln] Next 16+ build adapter context is required.",
-        );
+        throw new Error("[kiln] Next 16+ build adapter context is required.");
       }
 
       if (context.phase !== "phase-production-build") return config;
 
       if (process.argv.includes("--webpack")) {
-        throw new Error(
-          "[kiln] webpack mode is not supported. Use Turbopack build.",
-        );
+        throw new Error("[kiln] webpack mode is not supported. Use Turbopack build.");
       }
 
       if (config.output !== "standalone") {
@@ -98,11 +84,7 @@ export function createNextBuildHook(): NextBuildHook {
         writeFileSync(nftPath, JSON.stringify({ version: 1, files: [] }));
       }
 
-      writeBuildContext(
-        context.distDir,
-        context.projectDir,
-        context.config.assetPrefix ?? "",
-      );
+      writeBuildContext(context.distDir, context.projectDir, context.config.assetPrefix ?? "");
     },
   };
 }

@@ -176,8 +176,7 @@ export function main(): void {
       `binary ready at ${result.outputFile} (${result.framework}, ${result.backend} backend)`,
     );
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "unknown compiler failure";
+    const message = error instanceof Error ? error.message : "unknown compiler failure";
     logError(message);
     process.exit(1);
   }

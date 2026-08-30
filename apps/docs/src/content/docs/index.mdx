@@ -17,21 +17,25 @@ hero:
       variant: secondary
 ---
 
-import { Card, CardGrid } from '@astrojs/starlight/components';
+import { Card, CardGrid } from "@astrojs/starlight/components";
 
 ## Why Kiln?
 
 <CardGrid stagger>
   <Card title="100% Self-Contained Binaries" icon="rocket">
-    Compile SSR code, server chunks, static assets, and runtime dependencies into one standalone executable binary. Zero `node_modules` or Node.js runtime required on target servers.
+    Compile SSR code, server chunks, static assets, and runtime dependencies into one standalone
+    executable binary. Zero `node_modules` or Node.js runtime required on target servers.
   </Card>
   <Card title="Universal Framework Adapters" icon="puzzle">
-    Modular adapter architecture designed for modern fullstack frameworks. Full production support for Next.js 16, Astro 7, TanStack Start, and React Router v7.
+    Modular adapter architecture designed for modern fullstack frameworks. Full production support
+    for Next.js 16, Astro 7, TanStack Start, and React Router v7.
   </Card>
   <Card title="Instant Cold Starts (<10ms)" icon="laptop">
-    Deterministic SHA-256 build verification skips extraction on warm restarts, delivering immediate 0ms boot times and instant response handling.
+    Deterministic SHA-256 build verification skips extraction on warm restarts, delivering immediate
+    0ms boot times and instant response handling.
   </Card>
   <Card title="Docker & Edge Optimized" icon="seti:docker">
-    Pre-extract runtime files during container image builds using `--extract` for lightning-fast container scaling and minimal image footprints.
+    Pre-extract runtime files during container image builds using `--extract` for lightning-fast
+    container scaling and minimal image footprints.
   </Card>
 </CardGrid>

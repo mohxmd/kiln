@@ -9,11 +9,7 @@ import { BUILD_CONTEXT_FILE } from "../constants.js";
 import type { BuildContext } from "../types.js";
 import { readJsonFile, writeJsonFile } from "../utils/fs.js";
 
-export function writeBuildContext(
-  distDir: string,
-  projectDir: string,
-  assetPrefix: string,
-): void {
+export function writeBuildContext(distDir: string, projectDir: string, assetPrefix: string): void {
   writeJsonFile(join(distDir, BUILD_CONTEXT_FILE), {
     distDir,
     projectDir,

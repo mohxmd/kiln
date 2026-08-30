@@ -6,9 +6,7 @@ import { createBunBackend } from "./bun.js";
 import { createScriptCBackend } from "./scriptc.js";
 import type { BackendRegistry, CompilerBackend } from "./types.js";
 
-export function createBackendRegistry(
-  backends: readonly CompilerBackend[],
-): BackendRegistry {
+export function createBackendRegistry(backends: readonly CompilerBackend[]): BackendRegistry {
   const byId = new Map<string, CompilerBackend>();
 
   for (const backend of backends) {
@@ -29,9 +27,7 @@ export function createBackendRegistry(
       const backend = byId.get(id);
       if (!backend) {
         const available = [...byId.keys()].join(", ") || "none";
-        throw new Error(
-          `kiln: unknown compiler backend "${id}". Available backends: ${available}`,
-        );
+        throw new Error(`kiln: unknown compiler backend "${id}". Available backends: ${available}`);
       }
       return backend;
     },

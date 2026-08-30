@@ -6,11 +6,7 @@ description: Using Kiln programmatically in Node.js and Bun scripts.
 Import Kiln compiler functions directly into TypeScript or JavaScript build scripts:
 
 ```ts
-import {
-  compileApp,
-  compileStandalone,
-  generateEntryPoint,
-} from "kiln-compiler";
+import { compileApp, compileStandalone, generateEntryPoint } from "kiln-compiler";
 ```
 
 ---

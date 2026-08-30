@@ -29,10 +29,7 @@ function hasTanStackDependency(projectDir: string): boolean {
       ...pkg.devDependencies,
       ...pkg.peerDependencies,
     };
-    return (
-      "@tanstack/start" in allDeps ||
-      "@tanstack/react-start" in allDeps
-    );
+    return "@tanstack/start" in allDeps || "@tanstack/react-start" in allDeps;
   } catch {
     return false;
   }

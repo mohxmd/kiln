@@ -18,4 +18,3 @@
 ## Compatibility
 
 <!-- Mention adapter, runtime, backend, CLI, or release impact. -->
-

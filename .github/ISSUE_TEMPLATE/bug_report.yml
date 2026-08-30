@@ -43,4 +43,3 @@ body:
       description: Include OS, architecture, Bun version, and target if relevant.
     validations:
       required: true
-

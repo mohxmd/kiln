@@ -1,11 +1,4 @@
-import {
-  existsSync,
-  mkdirSync,
-  mkdtempSync,
-  readFileSync,
-  rmSync,
-  writeFileSync,
-} from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "bun:test";
@@ -66,14 +59,8 @@ describe("adapter/next", () => {
   });
 
   it("owns Next-specific build-output pruning", () => {
-    expect(
-      isNextPrunableModuleFile("next/dist/compiled/webpack/bundle5.js"),
-    ).toBe(true);
-    expect(
-      isNextPrunableModuleFile(
-        "next/dist/compiled/next-server/app-page.dev.js",
-      ),
-    ).toBe(true);
+    expect(isNextPrunableModuleFile("next/dist/compiled/webpack/bundle5.js")).toBe(true);
+    expect(isNextPrunableModuleFile("next/dist/compiled/next-server/app-page.dev.js")).toBe(true);
     expect(isNextPrunableModuleFile("server/app/page.js")).toBe(false);
   });
 
@@ -91,9 +78,7 @@ describe("adapter/next", () => {
       projectDir,
     });
 
-    expect(runtimeFiles?.map((file) => file.relativePath)).toEqual([
-      "server.js",
-    ]);
+    expect(runtimeFiles?.map((file) => file.relativePath)).toEqual(["server.js"]);
   });
 
   it("generates the default server entry with SSR and static routing support", () => {
@@ -136,9 +121,9 @@ describe("adapter/next", () => {
     process.argv = [...originalArgv, "--webpack"];
 
     try {
-      expect(() =>
-        hook.modifyConfig({}, { phase: "phase-production-build" }),
-      ).toThrow("webpack mode is not supported");
+      expect(() => hook.modifyConfig({}, { phase: "phase-production-build" })).toThrow(
+        "webpack mode is not supported",
+      );
     } finally {
       process.argv = originalArgv;
     }
@@ -157,9 +142,7 @@ describe("adapter/next", () => {
     });
 
     expect(existsSync(join(distDir, "next-server.js.nft.json"))).toBe(true);
-    expect(
-      JSON.parse(readFileSync(join(distDir, "kiln-ctx.json"), "utf8")),
-    ).toEqual({
+    expect(JSON.parse(readFileSync(join(distDir, "kiln-ctx.json"), "utf8"))).toEqual({
       distDir,
       projectDir,
       assetPrefix: "",

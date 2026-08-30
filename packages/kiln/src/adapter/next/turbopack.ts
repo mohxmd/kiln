@@ -170,9 +170,7 @@ export function validateAliasResolutions(
   }
 
   if (unresolved.length > 0) {
-    logWarn(
-      `${unresolved.length} Turbopack alias references could not be statically resolved:`,
-    );
+    logWarn(`${unresolved.length} Turbopack alias references could not be statically resolved:`);
     for (const ref of unresolved) {
       logWarn(`  - ${ref}`);
     }
@@ -195,9 +193,7 @@ export function rewriteTurbopackAliases(
 
   const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const pattern = new RegExp(
-    "([\"'])((?:" +
-      aliases.map((a) => escape(a.alias)).join("|") +
-      ")(?:/[^\"']+)?)\\1",
+    "([\"'])((?:" + aliases.map((a) => escape(a.alias)).join("|") + ")(?:/[^\"']+)?)\\1",
     "g",
   );
 
@@ -223,9 +219,7 @@ export function rewriteTurbopackAliases(
   }
 
   if (rewrittenPaths.length > 0) {
-    logInfo(
-      `rewrote ${rewrittenPaths.length} server chunks for Turbopack alias compatibility`,
-    );
+    logInfo(`rewrote ${rewrittenPaths.length} server chunks for Turbopack alias compatibility`);
   }
 
   return rewrittenPaths;

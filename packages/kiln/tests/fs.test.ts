@@ -34,9 +34,7 @@ describe("utils/fs", () => {
 
       const files = walkDir(tempDir);
       expect(files.length).toBe(2);
-      const relativePaths = files
-        .map((file) => file.relativePath.replace(/\\/g, "/"))
-        .sort();
+      const relativePaths = files.map((file) => file.relativePath.replace(/\\/g, "/")).sort();
       expect(relativePaths).toEqual(["nested/deeper/file1.txt", "root.txt"]);
     });
   });
@@ -74,9 +72,7 @@ describe("utils/fs", () => {
 
       const packageDirs = findPackageDirs(tempDir, "react");
 
-      expect(packageDirs).toEqual(
-        expect.arrayContaining([direct, bunStore, pnpmStore]),
-      );
+      expect(packageDirs).toEqual(expect.arrayContaining([direct, bunStore, pnpmStore]));
       expect(new Set(packageDirs)).toHaveLength(3);
     });
   });

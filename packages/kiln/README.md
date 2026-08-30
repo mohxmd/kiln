@@ -11,23 +11,22 @@ experimental **ScriptC backend** is available for native compiler probing;
 framework-generated runtimes still require the portable runtime work before
 they can be considered ScriptC-compatible.
 
-This is the package-level guide for `kiln-compiler`. See the [root README](https://github.com/mohxmd/kiln#readme)
-for the project overview and contribution workflow, or the [documentation source](https://github.com/mohxmd/kiln/tree/main/apps/docs)
-for the full framework guides.
+For full framework guides and deployment details, see the
+[Kiln documentation](https://kiln.mohx.art).
 
-> **Supported**: Next.js 15+ & 16, Astro 5+ & 7+, TanStack Start, React Router v7 • **Experimental**: SvelteKit • **Planned**: Nitro
+> **Current adapters**: Next.js 15 and 16, Astro 5 and 7, TanStack Start, React Router v7 • **Experimental**: SvelteKit • **Planned**: Nitro
 
 ---
 
 ## Features
 
-- **100% Self-Contained Binary**: Compiles SSR code, runtime chunks, and static assets into a single native binary. No `node_modules` or Node.js runtime needed on the host.
-- **Dual Runtime Engine**: Choose between the official framework server (`default`) or the high-speed in-memory static accelerator (`--engine bun-serve`) for 100k+ req/sec static asset delivery.
-- **Instant Cold Starts (<10ms)**: Fast-path SHA-256 build manifest check (`.kiln-extracted`) skips extraction on subsequent boots.
-- **Docker Optimized**: Pre-extract assets during `docker build` using `./server --extract` for instant container startup and zero runtime disk overhead.
+- **Self-Contained Binary**: Compiles SSR code, runtime chunks, and static assets into a single native binary. The target host does not need the original `node_modules` directory or a separate Node.js runtime.
+- **Two Runtime Modes**: Use the framework server (`default`) or Kiln's static asset server (`--engine bun-serve`) where supported.
+- **Cached Extraction**: A build manifest check (`.kiln-extracted`) skips repeated extraction when the embedded build has not changed.
+- **Docker-Friendly**: Pre-extract assets during `docker build` using `./server --extract`, moving first-run extraction into the image build step.
 - **Optimized Binary Footprint**: Prunes dead build artifacts (sourcemaps, dev bundles, Webpack compiler engines) and Gzip-compresses embedded server assets.
 - **Turbopack & Monorepo Ready**: Scans and rewrites 16-hex mangled Turbopack requires with runtime `Module._resolveFilename` fallback hooks supporting npm, pnpm, and Bun virtual stores.
-- **Universal Architecture**: Modular `FrameworkAdapter` contract allows compiling any web framework with zero compiler core modifications.
+- **Adapter-Based Architecture**: The modular `FrameworkAdapter` contract lets new framework integrations stay isolated from most compiler-core logic.
 
 ---
 
@@ -46,15 +45,31 @@ npm install -D kiln-compiler
 
 ---
 
-## Quick Start (Next.js 15+ / 16)
+## Quick Start (Next.js 15 / 16)
 
 ### 1. Configure the build adapter in `next.config.ts`
+
+For Next.js 16, use the top-level `adapterPath` option:
 
 ```ts
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   adapterPath: import.meta.resolve("kiln-compiler"),
+};
+
+export default nextConfig;
+```
+
+For Next.js 15, use the same path under `experimental`:
+
+```ts
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  experimental: {
+    adapterPath: import.meta.resolve("kiln-compiler"),
+  },
 };
 
 export default nextConfig;
@@ -80,17 +95,17 @@ next build && kiln -o ./bin/app
 kiln [options] [-- bun-build-flags...]
 ```
 
-| Flag                     | Default           | Description                                                            |
-| ------------------------ | ----------------- | ---------------------------------------------------------------------- |
-| `-p, --project <dir>`    | `.`               | Project root directory containing build output                         |
-| `-o, --out <path>`       | `./server`        | Output executable path (e.g. `./bin/app`)                              |
+| Flag                     | Default           | Description                                                                         |
+| ------------------------ | ----------------- | ----------------------------------------------------------------------------------- |
+| `-p, --project <dir>`    | `.`               | Project root directory containing build output                                      |
+| `-o, --out <path>`       | `./server`        | Output executable path (e.g. `./bin/app`)                                           |
 | `-f, --framework <name>` | _(auto-detect)_   | Framework adapter to use (`next`, `astro`, `tanstack`, `react-router`, `sveltekit`) |
-| `-b, --backend <name>`   | `bun`              | Compiler backend to use                                                  |
-| `-e, --engine <engine>`  | `default`         | Runtime HTTP engine: `default` or `bun-serve`                          |
-| `-t, --target <target>`  | _(host platform)_ | Cross-compilation target (e.g. `bun-linux-x64`, `bun-windows-x64`)     |
-| `--list-adapters`        |                   | Show all registered framework adapters                                 |
-| `--list-backends`        |                   | Show all registered compiler backends                                  |
-| `-h, --help`             |                   | Show CLI help menu                                                     |
+| `-b, --backend <name>`   | `bun`             | Compiler backend to use                                                             |
+| `-e, --engine <engine>`  | `default`         | Runtime HTTP engine: `default` or `bun-serve`                                       |
+| `-t, --target <target>`  | _(host platform)_ | Cross-compilation target (e.g. `bun-linux-x64`, `bun-windows-x64`)                  |
+| `--list-adapters`        |                   | Show all registered framework adapters                                              |
+| `--list-backends`        |                   | Show all registered compiler backends                                               |
+| `-h, --help`             |                   | Show CLI help menu                                                                  |
 
 The `--target` value is translated for the selected backend. Bun receives a
 `--target` flag; ScriptC receives `SCRIPTC_TARGET`. ScriptC native
@@ -113,7 +128,7 @@ kiln -o ./server-win.exe --target bun-windows-x64
 
 | Variable            | Default          | Description                                                          |
 | ------------------- | ---------------- | -------------------------------------------------------------------- |
-| `PORT`              | `3000`           | Server HTTP port                                                     |
+| `PORT`              | Adapter-defined  | Server HTTP port (usually `3000`; Astro uses `4321`)                 |
 | `HOSTNAME` / `HOST` | `0.0.0.0`        | Server bind hostname                                                 |
 | `KILN_ENGINE`       | `default`        | Runtime server engine (`default` or `bun-serve`)                     |
 | `KILN_RUNTIME_DIR`  | Binary directory | Runtime files extraction root (e.g. `/tmp/app` for RAM-backed tmpfs) |
@@ -122,7 +137,7 @@ kiln -o ./server-win.exe --target bun-windows-x64
 
 ## Docker Deployment (`--extract`)
 
-To achieve instant sub-10ms container cold starts, pre-materialize runtime files during image build:
+To move first-run extraction into the image build, pre-materialize runtime files during image build:
 
 ```dockerfile
 FROM oven/bun:alpine AS runner
@@ -146,6 +161,8 @@ CMD ["/app/app"]
 Implement the `FrameworkAdapter` interface and register it:
 
 ```ts
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 import type { FrameworkAdapter } from "kiln-compiler";
 import { registerAdapter } from "kiln-compiler";
 
@@ -169,11 +186,7 @@ registerAdapter({ framework: "my-framework", create: () => myAdapter });
 ## Programmatic API
 
 ```ts
-import {
-  compileApp,
-  compileStandalone,
-  generateEntryPoint,
-} from "kiln-compiler";
+import { compileApp, compileStandalone, generateEntryPoint } from "kiln-compiler";
 ```
 
 | Function                      | Description                                                                         |

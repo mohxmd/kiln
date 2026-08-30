@@ -16,9 +16,7 @@ import { generateEntryPoint } from "./generate-entry-point.js";
 export function compileApp(options: CompileAppOptions): CompileAppResult {
   const projectDir = resolve(options.projectDir);
   const adapter = resolveAdapter(projectDir, options.framework);
-  const backend = createDefaultBackendRegistry().resolve(
-    options.backend ?? "bun",
-  );
+  const backend = createDefaultBackendRegistry().resolve(options.backend ?? "bun");
 
   const distDir = adapter.getDistDir(projectDir);
   const standaloneDir = adapter.getStandaloneDir(projectDir);
@@ -54,16 +52,11 @@ export function compileApp(options: CompileAppOptions): CompileAppResult {
   };
 }
 
-function resolveAdapter(
-  projectDir: string,
-  framework?: string,
-): FrameworkAdapter {
+function resolveAdapter(projectDir: string, framework?: string): FrameworkAdapter {
   if (framework) {
     const adapter = getAdapter(framework);
     if (!adapter) {
-      throw new Error(
-        `kiln: unknown framework "${framework}". No adapter registered.`,
-      );
+      throw new Error(`kiln: unknown framework "${framework}". No adapter registered.`);
     }
     return adapter;
   }
@@ -71,8 +64,7 @@ function resolveAdapter(
   const detected = detectFramework(projectDir);
   if (!detected) {
     throw new Error(
-      "kiln: could not detect framework. " +
-        "Use --framework to specify one explicitly.",
+      "kiln: could not detect framework. " + "Use --framework to specify one explicitly.",
     );
   }
 

@@ -88,9 +88,7 @@ function walkDirInto(
  */
 export function findPackageDirs(standaloneDir: string, pkg: string): string[] {
   const dirs: string[] = [];
-  const prefix = pkg.startsWith("@")
-    ? pkg.split("/")[0] + "+" + pkg.split("/")[1]
-    : pkg;
+  const prefix = pkg.startsWith("@") ? pkg.split("/")[0] + "+" + pkg.split("/")[1] : pkg;
   const seen = new Set<string>();
 
   const checkNodeModules = (nodeModulesDir: string) => {

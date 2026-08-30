@@ -4,10 +4,7 @@ import { join } from "node:path";
 
 import { createBunBackend } from "../src/backend/bun.js";
 import { createScriptCBackend } from "../src/backend/scriptc.js";
-import {
-  createBackendRegistry,
-  createDefaultBackendRegistry,
-} from "../src/backend/registry.js";
+import { createBackendRegistry, createDefaultBackendRegistry } from "../src/backend/registry.js";
 import type { CompilerBackend } from "../src/backend/types.js";
 import { withTempDir } from "./helpers/temp-dir.js";
 
@@ -130,9 +127,7 @@ describe("compiler backends", () => {
         "--dynamic",
       ]);
       expect(calls[0]?.options?.cwd).toBe(projectDir);
-      expect(calls[0]?.options?.env?.SCRIPTC_TARGET).toBe(
-        "aarch64-linux-gnu.2.36",
-      );
+      expect(calls[0]?.options?.env?.SCRIPTC_TARGET).toBe("aarch64-linux-gnu.2.36");
     });
   });
 

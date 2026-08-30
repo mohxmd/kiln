@@ -7,9 +7,7 @@ import { generateEntryPoint } from "../src/core/generate-entry-point.js";
 import { generateStubs } from "../src/core/stubs.js";
 import { withTempDir } from "./helpers/temp-dir.js";
 
-function createTestAdapter(
-  runtimeFiles: FrameworkAdapter["getRuntimeFiles"],
-): FrameworkAdapter {
+function createTestAdapter(runtimeFiles: FrameworkAdapter["getRuntimeFiles"]): FrameworkAdapter {
   return {
     framework: "test",
     name: "Test",
@@ -33,14 +31,12 @@ describe("core generation", () => {
       generateStubs(standaloneDir, [
         { path: "nested/optional.js", content: "module.exports = {};" },
       ]);
-      expect(
-        readFileSync(join(standaloneDir, "nested", "optional.js"), "utf8"),
-      ).toBe("module.exports = {};");
+      expect(readFileSync(join(standaloneDir, "nested", "optional.js"), "utf8")).toBe(
+        "module.exports = {};",
+      );
 
       expect(() =>
-        generateStubs(standaloneDir, [
-          { path: "../outside.js", content: "unsafe" },
-        ]),
+        generateStubs(standaloneDir, [{ path: "../outside.js", content: "unsafe" }]),
       ).toThrow("stub path escapes standalone directory");
     });
   });
@@ -63,28 +59,14 @@ describe("core generation", () => {
         },
       ]);
 
-      utimesSync(
-        assetPath,
-        new Date("2020-01-01T00:00:00Z"),
-        new Date("2020-01-01T00:00:00Z"),
-      );
+      utimesSync(assetPath, new Date("2020-01-01T00:00:00Z"), new Date("2020-01-01T00:00:00Z"));
       generateEntryPoint({ standaloneDir, distDir, projectDir, adapter });
-      const firstStamp = readFileSync(
-        join(standaloneDir, "server-entry.js"),
-        "utf8",
-      );
+      const firstStamp = readFileSync(join(standaloneDir, "server-entry.js"), "utf8");
 
       writeFileSync(assetPath, "bbbb");
-      utimesSync(
-        assetPath,
-        new Date("2020-01-01T00:00:00Z"),
-        new Date("2020-01-01T00:00:00Z"),
-      );
+      utimesSync(assetPath, new Date("2020-01-01T00:00:00Z"), new Date("2020-01-01T00:00:00Z"));
       generateEntryPoint({ standaloneDir, distDir, projectDir, adapter });
-      const secondStamp = readFileSync(
-        join(standaloneDir, "server-entry.js"),
-        "utf8",
-      );
+      const secondStamp = readFileSync(join(standaloneDir, "server-entry.js"), "utf8");
 
       expect(secondStamp).not.toBe(firstStamp);
     });

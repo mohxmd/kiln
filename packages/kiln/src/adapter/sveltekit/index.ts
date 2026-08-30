@@ -14,10 +14,7 @@ import type {
   ServerEntryContext,
   StaticAssetConfig,
 } from "../types.js";
-import {
-  GENERATED_ASSETS_FILE,
-  GENERATED_SERVER_ENTRY_FILE,
-} from "../../constants.js";
+import { GENERATED_ASSETS_FILE, GENERATED_SERVER_ENTRY_FILE } from "../../constants.js";
 import { walkDir } from "../../utils/fs.js";
 import { toPosixPath } from "../../utils/path.js";
 
@@ -33,10 +30,7 @@ function hasSvelteKitDependencies(projectDir: string): boolean {
       ...packageJson.peerDependencies,
     };
 
-    return (
-      "@sveltejs/kit" in allDependencies &&
-      "@sveltejs/adapter-node" in allDependencies
-    );
+    return "@sveltejs/kit" in allDependencies && "@sveltejs/adapter-node" in allDependencies;
   } catch {
     return false;
   }
@@ -123,9 +117,7 @@ export function createSvelteKitAdapter(): FrameworkAdapter {
 
     generateServerEntry(ctx: ServerEntryContext): string {
       if (ctx.engine === "bun-serve") {
-        throw new Error(
-          "kiln: SvelteKit currently supports only the default runtime engine",
-        );
+        throw new Error("kiln: SvelteKit currently supports only the default runtime engine");
       }
 
       const assetExtractions = ctx.assets.map((asset) => {

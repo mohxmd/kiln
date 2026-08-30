@@ -10,9 +10,7 @@ describe("utils/path", () => {
   describe("toPosixPath", () => {
     it("converts Windows backslashes to POSIX slashes", () => {
       expect(toPosixPath("foo\\bar\\baz")).toBe("foo/bar/baz");
-      expect(toPosixPath(".next\\static\\chunks\\app.js")).toBe(
-        ".next/static/chunks/app.js",
-      );
+      expect(toPosixPath(".next\\static\\chunks\\app.js")).toBe(".next/static/chunks/app.js");
     });
 
     it("leaves POSIX paths unchanged", () => {
@@ -65,10 +63,7 @@ describe("utils/path", () => {
         },
       });
 
-      const generated = readFileSync(
-        join(standaloneDir, "assets.generated.js"),
-        "utf-8",
-      );
+      const generated = readFileSync(join(standaloneDir, "assets.generated.js"), "utf-8");
       expect(generated).toContain(JSON.stringify(`./../public/${assetName}`));
       expect(generated).toContain(JSON.stringify(`/${assetName}`));
     });

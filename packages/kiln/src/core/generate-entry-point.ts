@@ -4,25 +4,12 @@
  */
 
 import { createHash } from "node:crypto";
-import {
-  existsSync,
-  mkdirSync,
-  readFileSync,
-  statSync,
-  writeFileSync,
-} from "node:fs";
+import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { join, relative } from "node:path";
 import { gzipSync } from "node:zlib";
 
-import type {
-  EmbeddedAsset,
-  FrameworkAdapter,
-  RuntimeTransformResult,
-} from "../adapter/types.js";
-import {
-  GENERATED_ASSETS_FILE,
-  GENERATED_SERVER_ENTRY_FILE,
-} from "../constants.js";
+import type { EmbeddedAsset, FrameworkAdapter, RuntimeTransformResult } from "../adapter/types.js";
+import { GENERATED_ASSETS_FILE, GENERATED_SERVER_ENTRY_FILE } from "../constants.js";
 import { walkDir } from "../utils/fs.js";
 import { logInfo } from "../utils/log.js";
 import { toPosixPath } from "../utils/path.js";
@@ -38,10 +25,7 @@ export interface GenerateEntryPointOptions {
   engine?: "default" | "bun-serve";
 }
 
-function mapStaticAssets(
-  distDir: string,
-  adapter: FrameworkAdapter,
-): EmbeddedAsset[] {
+function mapStaticAssets(distDir: string, adapter: FrameworkAdapter): EmbeddedAsset[] {
   const config = adapter.getStaticAssetConfig();
   const staticPath = join(distDir, config.dir);
   if (!existsSync(staticPath)) return [];
@@ -94,13 +78,7 @@ export const gzippedAssets = new Set(${gzippedList});
 }
 
 export function generateEntryPoint(options: GenerateEntryPointOptions): void {
-  const {
-    standaloneDir,
-    distDir,
-    projectDir,
-    adapter,
-    engine = "default",
-  } = options;
+  const { standaloneDir, distDir, projectDir, adapter, engine = "default" } = options;
 
   // Generate fallback stubs for optional or dev-only imports
   generateStubs(standaloneDir, adapter.getStubs());
@@ -142,9 +120,7 @@ export function generateEntryPoint(options: GenerateEntryPointOptions): void {
   });
 
   if (assetPrefix.length > 0) {
-    logInfo(
-      `assetPrefix detected; skipping ${staticAssets.length} static assets (CDN hosted)`,
-    );
+    logInfo(`assetPrefix detected; skipping ${staticAssets.length} static assets (CDN hosted)`);
   }
 
   logInfo(
@@ -214,8 +190,5 @@ export function generateEntryPoint(options: GenerateEntryPointOptions): void {
     engine,
   });
 
-  writeFileSync(
-    join(standaloneDir, GENERATED_SERVER_ENTRY_FILE),
-    serverEntrySource,
-  );
+  writeFileSync(join(standaloneDir, GENERATED_SERVER_ENTRY_FILE), serverEntrySource);
 }

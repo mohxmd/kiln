@@ -12,11 +12,7 @@ import { existsSync } from "node:fs";
 import { join } from "node:path";
 
 import { logError, logInfo } from "../utils/log.js";
-import type {
-  CompileRequest,
-  CompileResult,
-  CompilerBackend,
-} from "./types.js";
+import type { CompileRequest, CompileResult, CompilerBackend } from "./types.js";
 
 export interface ScriptCCommandOptions {
   readonly cwd?: string;
@@ -38,8 +34,7 @@ function resolveScriptCExecutable(workingDirectory?: string): string {
   const configured = process.env.KILN_SCRIPTC_BIN;
   if (configured) return configured;
 
-  const executableName =
-    process.platform === "win32" ? "scriptc.cmd" : "scriptc";
+  const executableName = process.platform === "win32" ? "scriptc.cmd" : "scriptc";
   const searchDirectories = [workingDirectory, process.cwd()].filter(
     (directory, index, directories): directory is string =>
       directory !== undefined && directories.indexOf(directory) === index,
@@ -70,9 +65,7 @@ function compileWithScriptC(
   runCommand: ScriptCCommandRunner,
 ): CompileResult {
   if (!existsSync(request.entrypoint)) {
-    throw new Error(
-      `kiln: generated entrypoint not found at ${request.entrypoint}`,
-    );
+    throw new Error(`kiln: generated entrypoint not found at ${request.entrypoint}`);
   }
 
   const target = request.target ?? process.env.SCRIPTC_TARGET;
@@ -84,9 +77,7 @@ function compileWithScriptC(
 
   const defines = request.defines ?? [];
   if (defines.length > 0) {
-    throw new Error(
-      "kiln: the ScriptC backend does not support adapter build defines yet",
-    );
+    throw new Error("kiln: the ScriptC backend does not support adapter build defines yet");
   }
 
   const args = [
@@ -119,19 +110,16 @@ function compileWithScriptC(
     }
 
     const exitCode = (error as { status?: number }).status;
-    throw new Error(
-      `scriptc build failed with exit code ${exitCode ?? "unknown"}`,
-      { cause: error },
-    );
+    throw new Error(`scriptc build failed with exit code ${exitCode ?? "unknown"}`, {
+      cause: error,
+    });
   }
 
   logInfo(`compile completed -> ${request.outputFile}`);
   return { backend: "scriptc", outputFile: request.outputFile };
 }
 
-export function createScriptCBackend(
-  options: ScriptCBackendOptions = {},
-): CompilerBackend {
+export function createScriptCBackend(options: ScriptCBackendOptions = {}): CompilerBackend {
   const runCommand = options.runCommand ?? runScriptCCommand;
 
   return {
