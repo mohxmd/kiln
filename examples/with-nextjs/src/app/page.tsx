@@ -25,21 +25,24 @@ export default function Home() {
         </h1>
 
         <p className="mt-4 max-w-lg text-base text-zinc-400 sm:text-lg">
-          This entire application, including App Router SSR, Server Actions, and static assets, is running inside a single self-contained native executable binary.
+          This application exercises App Router SSR, Route Handlers, and static
+          assets inside a single self-contained native executable binary.
         </p>
 
         <div className="mt-8 grid w-full grid-cols-1 gap-4 text-left sm:grid-cols-2">
           <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-5 backdrop-blur">
             <h3 className="font-semibold text-white">⚡ Sub-10ms Cold Start</h3>
             <p className="mt-1.5 text-sm text-zinc-400">
-              Deterministic build stamps skip extraction on restarts for instant server boots.
+              Deterministic build stamps skip extraction on restarts for instant
+              server boots.
             </p>
           </div>
 
           <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-5 backdrop-blur">
             <h3 className="font-semibold text-white">📦 Zero Dependencies</h3>
             <p className="mt-1.5 text-sm text-zinc-400">
-              No node_modules or Node.js runtime installation needed on the target host.
+              No node_modules or Node.js runtime installation needed on the
+              target host.
             </p>
           </div>
         </div>
@@ -58,6 +61,12 @@ export default function Home() {
             className="rounded-lg border border-zinc-700 bg-zinc-800/80 px-5 py-2.5 text-sm font-semibold text-zinc-200 transition-colors hover:bg-zinc-700"
           >
             Kiln Docs
+          </a>
+          <a
+            href="/ssr"
+            className="rounded-lg border border-zinc-700 bg-zinc-800/80 px-5 py-2.5 text-sm font-semibold text-zinc-200 transition-colors hover:bg-zinc-700"
+          >
+            Request-time SSR
           </a>
         </div>
       </main>

@@ -11,7 +11,7 @@ The **Next.js Adapter** in Kiln provides production-grade single-binary compilat
 
 - **Next.js 16.x** (with top-level `adapterPath`)
 - **Next.js 15.x** (with `experimental.adapterPath`)
-- **Turbopack & Webpack builds**
+- **Turbopack builds**
 - **React 19 & Server Actions**
 
 ---

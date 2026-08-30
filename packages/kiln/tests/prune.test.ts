@@ -12,15 +12,14 @@ describe("core/prune", () => {
       expect(isPrunableModuleFile("node_modules/next/dist/index.js.map")).toBe(true);
     });
 
-    it("prunes dev-only react and next bundles", () => {
-      expect(isPrunableModuleFile("next/dist/compiled/next-server/app-page.dev.js")).toBe(true);
+    it("prunes dev-only React bundles", () => {
       expect(isPrunableModuleFile("react/cjs/react.development.js")).toBe(true);
       expect(isPrunableModuleFile("react-dom/cjs/react-dom.development.js")).toBe(true);
     });
 
-    it("prunes webpack internals that are unreachable in production standalone output", () => {
-      expect(isPrunableModuleFile("next/dist/compiled/webpack/bundle5.js")).toBe(true);
-      expect(isPrunableModuleFile(".next/node_modules/webpack5/lib/index.js")).toBe(true);
+    it("does not apply framework-specific pruning rules", () => {
+      expect(isPrunableModuleFile("next/dist/compiled/webpack/bundle5.js")).toBe(false);
+      expect(isPrunableModuleFile(".next/node_modules/webpack5/lib/index.js")).toBe(false);
     });
 
     it("retains production runtime files", () => {

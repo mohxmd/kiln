@@ -31,6 +31,19 @@ import {
 
 export { createNextBuildHook, type NextBuildHook } from "./build-hook.js";
 
+export function isNextPrunableModuleFile(mod: string): boolean {
+  if (isPrunableModuleFile(mod)) return true;
+
+  // Next.js build machinery is never loaded by production standalone output.
+  return (
+    (mod.includes("next/dist/compiled/next-server/") &&
+      mod.endsWith(".dev.js")) ||
+    mod.includes("next/dist/compiled/webpack/") ||
+    mod.includes("node_modules/webpack5/") ||
+    mod.includes("next/dist/build/webpack/")
+  );
+}
+
 function getRelativeAppDir(distDir: string): string {
   const rsfPath = join(distDir, "required-server-files.json");
   if (existsSync(rsfPath)) {
@@ -44,6 +57,23 @@ function getRelativeAppDir(distDir: string): string {
   return "";
 }
 
+function hasNextDependency(projectDir: string): boolean {
+  const packagePath = join(projectDir, "package.json");
+  if (!existsSync(packagePath)) return false;
+
+  try {
+    const packageJson = JSON.parse(readFileSync(packagePath, "utf-8"));
+    const allDependencies = {
+      ...packageJson.dependencies,
+      ...packageJson.devDependencies,
+      ...packageJson.peerDependencies,
+    };
+    return "next" in allDependencies;
+  } catch {
+    return false;
+  }
+}
+
 export function createNextAdapter(): FrameworkAdapter {
   return {
     framework: "next",
@@ -51,9 +81,11 @@ export function createNextAdapter(): FrameworkAdapter {
 
     detect(projectDir: string): boolean {
       return (
+        hasNextDependency(projectDir) ||
         existsSync(join(projectDir, "next.config.ts")) ||
         existsSync(join(projectDir, "next.config.js")) ||
-        existsSync(join(projectDir, "next.config.mjs"))
+        existsSync(join(projectDir, "next.config.mjs")) ||
+        existsSync(join(projectDir, "next.config.cjs"))
       );
     },
 
@@ -90,7 +122,7 @@ export function createNextAdapter(): FrameworkAdapter {
       for (const file of allFiles) {
         const posixRel = toPosixPath(file.relativePath);
 
-        if (isPrunableModuleFile(posixRel)) {
+        if (isNextPrunableModuleFile(posixRel)) {
           prunedCount += 1;
           continue;
         }

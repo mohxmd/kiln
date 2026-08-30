@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "check": "tsc --noEmit",
     "compile": "kiln -o ./bin/app",
     "build:compile": "next build && kiln -o ./bin/app",
     "start": "next start",

@@ -3,22 +3,21 @@
  */
 
 /**
- * Build-time-only files that reach the standalone tree through traces
- * but can never load at production runtime -- embedding them costs binary
- * size and extraction time for no benefit.
+ * Framework-agnostic files that reach a standalone tree through build traces
+ * but can never load at production runtime.
  */
 export function isPrunableModuleFile(mod: string): boolean {
   // Sourcemaps are referenced only by sourceMappingURL comments, never require()d
   if (mod.endsWith(".map")) return true;
 
-  // Development builds are unreachable in production (NODE_ENV=production)
-  if (mod.includes("next/dist/compiled/next-server/") && mod.endsWith(".dev.js")) return true;
-  if (mod.includes("/development.js") || mod.endsWith("/react.development.js") || mod.endsWith("/react-dom.development.js")) return true;
-
-  // Webpack build machinery is never loaded by output builds in production
-  if (mod.includes("next/dist/compiled/webpack/")) return true;
-  if (mod.includes("node_modules/webpack5/")) return true;
-  if (mod.includes("next/dist/build/webpack/")) return true;
+  // Development builds are unreachable in production (NODE_ENV=production).
+  if (
+    mod.includes("/development.js") ||
+    mod.endsWith("/react.development.js") ||
+    mod.endsWith("/react-dom.development.js")
+  ) {
+    return true;
+  }
 
   return false;
 }
