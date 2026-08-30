@@ -5,6 +5,7 @@
 import { createAstroAdapter } from "./astro/index.js";
 import { createNextAdapter } from "./next/index.js";
 import { createReactRouterAdapter } from "./react-router/index.js";
+import { createSvelteKitAdapter } from "./sveltekit/index.js";
 import { createTanStackAdapter } from "./tanstack/index.js";
 import type {
   FrameworkAdapter,
@@ -32,6 +33,11 @@ registerAdapter({
 registerAdapter({
   framework: "react-router",
   create: () => createReactRouterAdapter(),
+});
+
+registerAdapter({
+  framework: "sveltekit",
+  create: () => createSvelteKitAdapter(),
 });
 
 export function registerAdapter(

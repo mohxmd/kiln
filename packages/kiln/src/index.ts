@@ -14,6 +14,7 @@ export {
   listAdapters,
   registerAdapter,
 } from "./adapter/registry.js";
+export { createSvelteKitAdapter } from "./adapter/sveltekit/index.js";
 export type {
   EmbeddedAsset,
   FrameworkAdapter,
