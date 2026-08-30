@@ -38,11 +38,5 @@
     "typescript": "^6.0.2",
     "vite": "^8.0.0",
     "kiln-compiler": "workspace:*"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "esbuild",
-      "lightningcss"
-    ]
   }
 }

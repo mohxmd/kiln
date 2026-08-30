@@ -8,6 +8,14 @@ on:
       - "examples/**"
       - "assets/**"
       - ".github/workflows/ci.yml"
+      - ".github/workflows/publish.yml"
+      - ".github/CODEOWNERS"
+      - ".github/**"
+      - "CHANGELOG.md"
+      - "CONTRIBUTING.md"
+      - "CODE_OF_CONDUCT.md"
+      - "RELEASING.md"
+      - "SECURITY.md"
       - "README.md"
       - "LICENSE"
       - "package.json"
@@ -35,8 +43,8 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      - name: Type-check
-        run: bun run check-types
+      - name: Check
+        run: bun run check
 
       - name: Build compiler
         run: bun run build
