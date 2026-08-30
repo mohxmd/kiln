@@ -1,4 +1,8 @@
 import { describe, expect, it } from "bun:test";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { generateEntryPoint } from "../src/core/generate-entry-point.js";
 import { toPosixPath, toSafeAssetVariableName } from "../src/utils/path.js";
 
 describe("utils/path", () => {
@@ -30,5 +34,40 @@ describe("utils/path", () => {
       const var2 = toSafeAssetVariableName("app/page.ts");
       expect(var1).not.toBe(var2);
     });
+  });
+
+  it("escapes asset filenames and URLs in generated modules", () => {
+    const projectDir = mkdtempSync(join(tmpdir(), "kiln-test-assets-"));
+    const standaloneDir = join(projectDir, "standalone");
+    const publicDir = join(projectDir, "public");
+    const assetName = 'quote"asset.txt';
+
+    try {
+      mkdirSync(publicDir, { recursive: true });
+      mkdirSync(standaloneDir, { recursive: true });
+      writeFileSync(join(publicDir, assetName), "asset");
+      generateEntryPoint({
+        standaloneDir,
+        distDir: join(projectDir, "dist"),
+        projectDir,
+        adapter: {
+          framework: "test",
+          name: "Test",
+          detect: () => true,
+          getStandaloneDir: () => standaloneDir,
+          getDistDir: () => join(projectDir, "dist"),
+          getStaticAssetConfig: () => ({ dir: "client", urlPrefix: "" }),
+          getStubs: () => [],
+          getBuildDefines: () => [],
+          generateServerEntry: () => "export {};",
+        },
+      });
+
+      const generated = readFileSync(join(standaloneDir, "assets.generated.js"), "utf-8");
+      expect(generated).toContain(JSON.stringify(`./../public/${assetName}`));
+      expect(generated).toContain(JSON.stringify(`/${assetName}`));
+    } finally {
+      rmSync(projectDir, { recursive: true, force: true });
+    }
   });
 });

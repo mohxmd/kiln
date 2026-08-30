@@ -137,6 +137,17 @@ process.env.NODE_ENV = "production";
 const publicPort = parseInt(process.env.PORT || process.env.NITRO_PORT, 10) || 3000;
 const publicHost = process.env.HOST || process.env.NITRO_HOST || process.env.HOSTNAME || "0.0.0.0";
 
+function safeStaticPath(root, pathname) {
+  let decoded;
+  try { decoded = decodeURIComponent(pathname); } catch { return null; }
+  if (decoded.includes("\\0")) return null;
+  const rootPath = path.resolve(root);
+  const candidate = path.resolve(rootPath, decoded.replace(/^[/\\\\]+/, ""));
+  return candidate === rootPath || candidate.startsWith(rootPath + path.sep)
+    ? candidate
+    : null;
+}
+
 const extractions = ${JSON.stringify(assetExtractions)};
 const buildStamp = ${JSON.stringify(ctx.buildStamp)} + "\\n" + baseDir;
 const manifestPath = path.join(baseDir, ".kiln-extracted");
@@ -216,9 +227,9 @@ if (process.argv.includes("--extract")) {
             const pathname = url.pathname;
 
             // Tier 1: Static public assets (zero-copy file stream)
-            const publicFilePath = path.join(baseDir, "public", pathname.slice(1));
-            const publicFile = Bun.file(publicFilePath);
-            if (pathname !== "/" && await publicFile.exists()) {
+            const publicFilePath = safeStaticPath(path.join(baseDir, "public"), pathname);
+            const publicFile = publicFilePath ? Bun.file(publicFilePath) : null;
+            if (publicFile && pathname !== "/" && await publicFile.exists()) {
               return new Response(publicFile, {
                 headers: { "Cache-Control": "public, max-age=3600" },
               });

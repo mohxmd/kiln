@@ -1,4 +1,4 @@
-﻿{
+{
   "name": "kiln-compiler",
   "version": "0.1.0",
   "description": "Compile framework apps into native Bun executables.",
@@ -26,8 +26,8 @@
     "LICENSE"
   ],
   "scripts": {
-    "clean": "node -e \"require('fs').rmSync('dist', { recursive: true, force: true })\"",
-    "build": "node -e \"require('fs').rmSync('dist', { recursive: true, force: true })\" && tsc --project tsconfig.json",
+    "clean": "bun -e \"import { rmSync } from 'node:fs'; rmSync('dist', { recursive: true, force: true })\"",
+    "build": "bun run clean && tsc --project tsconfig.json && bun -e \"import { chmodSync } from 'node:fs'; chmodSync('dist/cli.js', 0o755)\"",
     "check-types": "tsc --project tsconfig.json --noEmit",
     "test": "bun test",
     "prepublishOnly": "bun run build"

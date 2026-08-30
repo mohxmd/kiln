@@ -139,6 +139,17 @@ const host = process.env.HOST || process.env.HOSTNAME || "0.0.0.0";
 process.env.PORT = String(port);
 process.env.HOST = host;
 
+function safeStaticPath(root, pathname) {
+  let decoded;
+  try { decoded = decodeURIComponent(pathname); } catch { return null; }
+  if (decoded.includes("\\0")) return null;
+  const rootPath = path.resolve(root);
+  const candidate = path.resolve(rootPath, decoded.replace(/^[/\\\\]+/, ""));
+  return candidate === rootPath || candidate.startsWith(rootPath + path.sep)
+    ? candidate
+    : null;
+}
+
 const extractions = ${JSON.stringify(assetExtractions)};
 const buildStamp = ${JSON.stringify(ctx.buildStamp)} + "\\n" + baseDir;
 const manifestPath = path.join(baseDir, ".kiln-extracted");
@@ -227,12 +238,12 @@ if (process.argv.includes("--extract")) {
         hostname: host,
         async fetch(req) {
           const url = new URL(req.url);
-          const pathname = url.pathname;
+            const pathname = url.pathname;
 
-          // Tier 1: Static assets from build/client
-          const clientFilePath = path.join(baseDir, "client", pathname.slice(1));
-          const clientFile = Bun.file(clientFilePath);
-          if (pathname !== "/" && await clientFile.exists()) {
+            // Tier 1: Static assets from build/client
+          const clientFilePath = safeStaticPath(path.join(baseDir, "client"), pathname);
+          const clientFile = clientFilePath ? Bun.file(clientFilePath) : null;
+          if (clientFile && pathname !== "/" && await clientFile.exists()) {
             const isImmutable = pathname.startsWith("/assets/");
             return new Response(clientFile, {
               headers: {

@@ -1,8 +1,7 @@
-﻿# Dependencies
+# Dependencies
 node_modules/
 package-lock.json
 yarn.lock
-bun.lock
 
 # Build outputs
 dist/

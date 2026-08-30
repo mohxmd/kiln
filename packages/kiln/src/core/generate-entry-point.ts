@@ -77,9 +77,9 @@ function generateAssetsModule(
     const variableName = `__asset_${i}`;
     const importPath = toPosixPath(relative(standaloneDir, asset.absolutePath));
     imports.push(
-      `import ${variableName} from "./${importPath}" with { type: "file" };`,
+      `import ${variableName} from ${JSON.stringify(`./${importPath}`)} with { type: "file" };`,
     );
-    mapEntries.push(`  ["${asset.urlPath}", ${variableName}],`);
+    mapEntries.push(`  [${JSON.stringify(asset.urlPath)}, ${variableName}],`);
   }
 
   const gzippedList = JSON.stringify([...gzippedUrls]);

@@ -115,6 +115,17 @@ process.env.NODE_ENV = "production";
 const publicPort = parseInt(process.env.PORT, 10) || 4321;
 const publicHost = process.env.HOST || process.env.HOSTNAME || "0.0.0.0";
 
+function safeStaticPath(root, pathname) {
+  let decoded;
+  try { decoded = decodeURIComponent(pathname); } catch { return null; }
+  if (decoded.includes("\\0")) return null;
+  const rootPath = path.resolve(root);
+  const candidate = path.resolve(rootPath, decoded.replace(/^[/\\\\]+/, ""));
+  return candidate === rootPath || candidate.startsWith(rootPath + path.sep)
+    ? candidate
+    : null;
+}
+
 const extractions = ${JSON.stringify(assetExtractions)};
 const buildStamp = ${JSON.stringify(ctx.buildStamp)} + "\\n" + baseDir;
 const manifestPath = path.join(baseDir, ".kiln-extracted");
@@ -192,9 +203,9 @@ if (process.argv.includes("--extract")) {
             const pathname = url.pathname;
 
             // Tier 1: Static assets from dist/client
-            const clientFilePath = path.join(baseDir, "client", pathname.slice(1));
-            const clientFile = Bun.file(clientFilePath);
-            if (pathname !== "/" && await clientFile.exists()) {
+            const clientFilePath = safeStaticPath(path.join(baseDir, "client"), pathname);
+            const clientFile = clientFilePath ? Bun.file(clientFilePath) : null;
+            if (clientFile && pathname !== "/" && await clientFile.exists()) {
               const isImmutable = pathname.startsWith("/_astro/");
               return new Response(clientFile, {
                 headers: {

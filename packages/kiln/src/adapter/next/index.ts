@@ -174,6 +174,17 @@ const publicPort = parseInt(process.env.PORT, 10) || 3000;
 const publicHost = process.env.HOSTNAME || "0.0.0.0";
 const keepAliveTimeout = process.env.KEEP_ALIVE_TIMEOUT ? parseInt(process.env.KEEP_ALIVE_TIMEOUT, 10) : undefined;
 
+function safeStaticPath(root, pathname) {
+  let decoded;
+  try { decoded = decodeURIComponent(pathname); } catch { return null; }
+  if (decoded.includes("\\0")) return null;
+  const rootPath = path.resolve(root);
+  const candidate = path.resolve(rootPath, decoded.replace(/^[/\\\\]+/, ""));
+  return candidate === rootPath || candidate.startsWith(rootPath + path.sep)
+    ? candidate
+    : null;
+}
+
 const extractions = ${JSON.stringify(assetExtractions)};
 const buildStamp = ${JSON.stringify(ctx.buildStamp)} + "\\n" + baseDir;
 const manifestPath = path.join(baseDir, ".kiln-extracted");
@@ -262,9 +273,9 @@ if (process.argv.includes("--extract")) {
               // Tier 1: Static /_next/static/* assets (Zero-copy native file streaming)
               if (pathname.startsWith("/_next/static/")) {
                 const subPath = pathname.slice("/_next/static/".length);
-                const staticFilePath = path.join(baseDir, ".next", "static", subPath);
-                const file = Bun.file(staticFilePath);
-                if (await file.exists()) {
+                const staticFilePath = safeStaticPath(path.join(baseDir, ".next", "static"), subPath);
+                const file = staticFilePath ? Bun.file(staticFilePath) : null;
+                if (file && await file.exists()) {
                   return new Response(file, {
                     headers: { "Cache-Control": "public, max-age=31536000, immutable" },
                   });
@@ -272,9 +283,9 @@ if (process.argv.includes("--extract")) {
               }
 
               // Tier 2: Public static files
-              const publicFilePath = path.join(baseDir, "public", pathname.slice(1));
-              const publicFile = Bun.file(publicFilePath);
-              if (pathname !== "/" && await publicFile.exists()) {
+              const publicFilePath = safeStaticPath(path.join(baseDir, "public"), pathname);
+              const publicFile = publicFilePath ? Bun.file(publicFilePath) : null;
+              if (publicFile && pathname !== "/" && await publicFile.exists()) {
                 return new Response(publicFile, {
                   headers: { "Cache-Control": "public, max-age=3600" },
                 });
