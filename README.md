@@ -25,7 +25,7 @@ The resulting server does not need `node_modules`, Node.js, or Bun installed.
 | **Astro**                        | Supported (5+ & 7+)  | `@astrojs/node` standalone    |
 | **TanStack Start**               | Supported            | Nitro / `.output` standalone  |
 | **React Router v7 / Remix**      | Supported            | Vite SSR / `build` standalone |
-| **SvelteKit**                    | Planned              | Adapter in roadmap            |
+| **SvelteKit**                    | Experimental         | `@sveltejs/adapter-node`      |
 | **Nitro**                        | Planned              | Adapter in roadmap            |
 
 ---

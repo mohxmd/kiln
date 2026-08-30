@@ -34,6 +34,7 @@ export default defineConfig({
             { label: "Astro", slug: "frameworks/astro" },
             { label: "TanStack Start", slug: "frameworks/tanstack" },
             { label: "React Router v7", slug: "frameworks/react-router" },
+            { label: "SvelteKit", slug: "frameworks/sveltekit" },
             { label: "Roadmap & Others", slug: "frameworks/roadmap" },
           ],
         },

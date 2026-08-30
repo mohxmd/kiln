@@ -15,7 +15,7 @@ This is the package-level guide for `kiln-compiler`. See the [root README](https
 for the project overview and contribution workflow, or the [documentation source](https://github.com/mohxmd/kiln/tree/main/apps/docs)
 for the full framework guides.
 
-> **Supported**: Next.js 15+ & 16, Astro 5+ & 7+, TanStack Start, React Router v7 • **Planned**: SvelteKit, Nitro
+> **Supported**: Next.js 15+ & 16, Astro 5+ & 7+, TanStack Start, React Router v7 • **Experimental**: SvelteKit • **Planned**: Nitro
 
 ---
 
@@ -84,7 +84,7 @@ kiln [options] [-- bun-build-flags...]
 | ------------------------ | ----------------- | ---------------------------------------------------------------------- |
 | `-p, --project <dir>`    | `.`               | Project root directory containing build output                         |
 | `-o, --out <path>`       | `./server`        | Output executable path (e.g. `./bin/app`)                              |
-| `-f, --framework <name>` | _(auto-detect)_   | Framework adapter to use (`next`, `astro`, `tanstack`, `react-router`) |
+| `-f, --framework <name>` | _(auto-detect)_   | Framework adapter to use (`next`, `astro`, `tanstack`, `react-router`, `sveltekit`) |
 | `-b, --backend <name>`   | `bun`              | Compiler backend to use                                                  |
 | `-e, --engine <engine>`  | `default`         | Runtime HTTP engine: `default` or `bun-serve`                          |
 | `-t, --target <target>`  | _(host platform)_ | Cross-compilation target (e.g. `bun-linux-x64`, `bun-windows-x64`)     |

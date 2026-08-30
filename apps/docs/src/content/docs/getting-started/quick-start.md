@@ -54,6 +54,21 @@ export default defineConfig({
 });
 ```
 
+### For SvelteKit
+
+Configure SvelteKit with `@sveltejs/adapter-node` and its default `build`
+output directory. Kiln currently supports this server output experimentally.
+
+```js
+import adapter from "@sveltejs/adapter-node";
+
+export default {
+  kit: {
+    adapter: adapter(),
+  },
+};
+```
+
 ---
 
 ## 3. Build & Compile
@@ -66,6 +81,9 @@ next build && kiln -o ./bin/app
 
 # For Astro:
 astro build && kiln -o ./bin/app
+
+# For SvelteKit:
+bun run build && kiln -f sveltekit -o ./bin/app
 ```
 
 ---
