@@ -1,0 +1,37 @@
+---
+title: Kiln
+description: Compile modern web applications into single native Bun executables.
+template: splash
+hero:
+  tagline: The universal framework compiler. Turn Next.js, Astro, and web apps into single, self-contained native executable binaries via Bun.
+  image:
+    file: ../../assets/hero-logo.png
+  actions:
+    - text: Quick Start
+      link: /getting-started/quick-start/
+      icon: right-arrow
+      variant: primary
+    - text: View on GitHub
+      link: https://github.com/mohxmd/kiln
+      icon: external
+      variant: secondary
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+## Why Kiln?
+
+<CardGrid stagger>
+  <Card title="100% Self-Contained Binaries" icon="rocket">
+    Compile SSR code, server chunks, static assets, and runtime dependencies into one standalone executable binary. Zero `node_modules` or Node.js runtime required on target servers.
+  </Card>
+  <Card title="Universal Framework Adapters" icon="puzzle">
+    Modular adapter architecture designed for modern fullstack frameworks. Full production support for Next.js 16, Astro 7, TanStack Start, and React Router v7.
+  </Card>
+  <Card title="Instant Cold Starts (<10ms)" icon="laptop">
+    Deterministic SHA-256 build verification skips extraction on warm restarts, delivering immediate 0ms boot times and instant response handling.
+  </Card>
+  <Card title="Docker & Edge Optimized" icon="seti:docker">
+    Pre-extract runtime files during container image builds using `--extract` for lightning-fast container scaling and minimal image footprints.
+  </Card>
+</CardGrid>
