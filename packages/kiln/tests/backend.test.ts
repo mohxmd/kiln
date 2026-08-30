@@ -1,6 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { createBunBackend } from "../src/backend/bun.js";
@@ -10,6 +9,7 @@ import {
   createDefaultBackendRegistry,
 } from "../src/backend/registry.js";
 import type { CompilerBackend } from "../src/backend/types.js";
+import { withTempDir } from "./helpers/temp-dir.js";
 
 describe("compiler backends", () => {
   it("creates an isolated default registry with the stable Bun backend", () => {
@@ -35,22 +35,26 @@ describe("compiler backends", () => {
   });
 
   it("constructs the Bun command through an injectable runner", () => {
-    const projectDir = mkdtempSync(join(tmpdir(), "kiln-test-backend-"));
-    const entrypoint = join(projectDir, "server-entry.js");
-    const outputFile = join(projectDir, "server");
-    const calls: Array<{ executable: string; args: readonly string[] }> = [];
+    withTempDir("backend", (projectDir) => {
+      const entrypoint = join(projectDir, "server-entry.js");
+      const outputFile = join(projectDir, "server");
+      const calls: Array<{
+        executable: string;
+        args: readonly string[];
+        options?: { cwd?: string };
+      }> = [];
 
-    try {
       writeFileSync(entrypoint, "export {};\n");
       const backend = createBunBackend({
-        runCommand(executable, args) {
-          calls.push({ executable, args });
+        runCommand(executable, args, options) {
+          calls.push({ executable, args, options });
         },
       });
 
       const result = backend.compile({
         entrypoint,
         outputFile,
+        workingDirectory: projectDir,
         defines: ['process.env.RUNTIME="nodejs"'],
         extraArgs: ["--target=bun-linux-x64"],
       });
@@ -69,9 +73,8 @@ describe("compiler backends", () => {
           "--target=bun-linux-x64",
         ]),
       );
-    } finally {
-      rmSync(projectDir, { recursive: true, force: true });
-    }
+      expect(calls[0]?.options?.cwd).toBe(projectDir);
+    });
   });
 
   it("fails before invoking Bun when the generated entrypoint is missing", () => {
@@ -92,16 +95,15 @@ describe("compiler backends", () => {
   });
 
   it("constructs the ScriptC command and target environment through an injectable runner", () => {
-    const projectDir = mkdtempSync(join(tmpdir(), "kiln-test-scriptc-"));
-    const entrypoint = join(projectDir, "server-entry.js");
-    const outputFile = join(projectDir, "server");
-    const calls: Array<{
-      executable: string;
-      args: readonly string[];
-      options?: { cwd?: string; env?: NodeJS.ProcessEnv };
-    }> = [];
+    withTempDir("scriptc", (projectDir) => {
+      const entrypoint = join(projectDir, "server-entry.js");
+      const outputFile = join(projectDir, "server");
+      const calls: Array<{
+        executable: string;
+        args: readonly string[];
+        options?: { cwd?: string; env?: NodeJS.ProcessEnv };
+      }> = [];
 
-    try {
       writeFileSync(entrypoint, "console.log('hello');\n");
       const backend = createScriptCBackend({
         runCommand(executable, args, options) {
@@ -131,17 +133,14 @@ describe("compiler backends", () => {
       expect(calls[0]?.options?.env?.SCRIPTC_TARGET).toBe(
         "aarch64-linux-gnu.2.36",
       );
-    } finally {
-      rmSync(projectDir, { recursive: true, force: true });
-    }
+    });
   });
 
   it("rejects WASI until Kiln has a portable HTTP host", () => {
-    const projectDir = mkdtempSync(join(tmpdir(), "kiln-test-scriptc-wasi-"));
-    const entrypoint = join(projectDir, "server-entry.js");
-    let invoked = false;
+    withTempDir("scriptc-wasi", (projectDir) => {
+      const entrypoint = join(projectDir, "server-entry.js");
+      let invoked = false;
 
-    try {
       writeFileSync(entrypoint, "console.log('hello');\n");
       const backend = createScriptCBackend({
         runCommand() {
@@ -157,18 +156,13 @@ describe("compiler backends", () => {
         }),
       ).toThrow("ScriptC WASI output is not supported yet");
       expect(invoked).toBe(false);
-    } finally {
-      rmSync(projectDir, { recursive: true, force: true });
-    }
+    });
   });
 
   it("rejects adapter defines that ScriptC cannot translate yet", () => {
-    const projectDir = mkdtempSync(
-      join(tmpdir(), "kiln-test-scriptc-defines-"),
-    );
-    const entrypoint = join(projectDir, "server-entry.js");
+    withTempDir("scriptc-defines", (projectDir) => {
+      const entrypoint = join(projectDir, "server-entry.js");
 
-    try {
       writeFileSync(entrypoint, "console.log('hello');\n");
       const backend = createScriptCBackend({ runCommand() {} });
 
@@ -179,8 +173,6 @@ describe("compiler backends", () => {
           defines: ['process.env.RUNTIME="nodejs"'],
         }),
       ).toThrow("does not support adapter build defines yet");
-    } finally {
-      rmSync(projectDir, { recursive: true, force: true });
-    }
+    });
   });
 });

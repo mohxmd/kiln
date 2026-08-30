@@ -1,7 +1,8 @@
 import { describe, expect, it } from "bun:test";
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+
+import { withTempDir } from "./helpers/temp-dir.js";
 import { generateEntryPoint } from "../src/core/generate-entry-point.js";
 import { toPosixPath, toSafeAssetVariableName } from "../src/utils/path.js";
 
@@ -9,7 +10,9 @@ describe("utils/path", () => {
   describe("toPosixPath", () => {
     it("converts Windows backslashes to POSIX slashes", () => {
       expect(toPosixPath("foo\\bar\\baz")).toBe("foo/bar/baz");
-      expect(toPosixPath(".next\\static\\chunks\\app.js")).toBe(".next/static/chunks/app.js");
+      expect(toPosixPath(".next\\static\\chunks\\app.js")).toBe(
+        ".next/static/chunks/app.js",
+      );
     });
 
     it("leaves POSIX paths unchanged", () => {
@@ -37,12 +40,11 @@ describe("utils/path", () => {
   });
 
   it("escapes asset filenames and URLs in generated modules", () => {
-    const projectDir = mkdtempSync(join(tmpdir(), "kiln-test-assets-"));
-    const standaloneDir = join(projectDir, "standalone");
-    const publicDir = join(projectDir, "public");
-    const assetName = 'quote"asset.txt';
+    withTempDir("assets", (projectDir) => {
+      const standaloneDir = join(projectDir, "standalone");
+      const publicDir = join(projectDir, "public");
+      const assetName = 'quote"asset.txt';
 
-    try {
       mkdirSync(publicDir, { recursive: true });
       mkdirSync(standaloneDir, { recursive: true });
       writeFileSync(join(publicDir, assetName), "asset");
@@ -63,11 +65,12 @@ describe("utils/path", () => {
         },
       });
 
-      const generated = readFileSync(join(standaloneDir, "assets.generated.js"), "utf-8");
+      const generated = readFileSync(
+        join(standaloneDir, "assets.generated.js"),
+        "utf-8",
+      );
       expect(generated).toContain(JSON.stringify(`./../public/${assetName}`));
       expect(generated).toContain(JSON.stringify(`/${assetName}`));
-    } finally {
-      rmSync(projectDir, { recursive: true, force: true });
-    }
+    });
   });
 });

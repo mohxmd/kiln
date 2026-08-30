@@ -1,18 +1,15 @@
 import { describe, expect, it } from "bun:test";
-import {
-  mkdtempSync,
-  mkdirSync,
-  rmSync,
-  writeFileSync,
-} from "node:fs";
-import { tmpdir } from "node:os";
+import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { createSvelteKitAdapter } from "../src/adapter/sveltekit/index.js";
 import { getAdapter } from "../src/adapter/registry.js";
+import { withTempDir } from "./helpers/temp-dir.js";
 
-function createProject(withSvelteKitDependencies: boolean): string {
-  const projectDir = mkdtempSync(join(tmpdir(), "kiln-test-sveltekit-"));
+function createProject(
+  projectDir: string,
+  withSvelteKitDependencies: boolean,
+): void {
   writeFileSync(
     join(projectDir, "package.json"),
     JSON.stringify({
@@ -21,7 +18,6 @@ function createProject(withSvelteKitDependencies: boolean): string {
         : { svelte: "latest" },
     }),
   );
-  return projectDir;
 }
 
 describe("adapter/sveltekit", () => {
@@ -52,26 +48,22 @@ describe("adapter/sveltekit", () => {
   });
 
   it("detects SvelteKit but not plain Svelte projects", () => {
-    const svelteKitProject = createProject(true);
-    const svelteProject = createProject(false);
+    withTempDir("sveltekit-detect", (svelteKitProject) => {
+      withTempDir("svelte-detect", (svelteProject) => {
+        createProject(svelteKitProject, true);
+        createProject(svelteProject, false);
 
-    try {
-      const adapter = createSvelteKitAdapter();
-      expect(adapter.detect(svelteKitProject)).toBe(true);
-      expect(adapter.detect(svelteProject)).toBe(false);
-    } finally {
-      rmSync(svelteKitProject, { recursive: true, force: true });
-      rmSync(svelteProject, { recursive: true, force: true });
-    }
+        const adapter = createSvelteKitAdapter();
+        expect(adapter.detect(svelteKitProject)).toBe(true);
+        expect(adapter.detect(svelteProject)).toBe(false);
+      });
+    });
   });
 
   it("embeds build runtime files but leaves build/client to static assets", () => {
-    const projectDir = mkdtempSync(
-      join(tmpdir(), "kiln-test-sveltekit-output-"),
-    );
-    const buildDir = join(projectDir, "build");
+    withTempDir("sveltekit-output", (projectDir) => {
+      const buildDir = join(projectDir, "build");
 
-    try {
       mkdirSync(join(buildDir, "client", "_app"), { recursive: true });
       mkdirSync(join(buildDir, "server"), { recursive: true });
       writeFileSync(join(buildDir, "client", "index.html"), "client");
@@ -92,9 +84,7 @@ describe("adapter/sveltekit", () => {
         "index.js",
         "server/index.js",
       ]);
-    } finally {
-      rmSync(projectDir, { recursive: true, force: true });
-    }
+    });
   });
 
   it("generates an entrypoint for the official SvelteKit server", () => {

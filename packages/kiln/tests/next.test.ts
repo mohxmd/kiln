@@ -77,6 +77,25 @@ describe("adapter/next", () => {
     expect(isNextPrunableModuleFile("server/app/page.js")).toBe(false);
   });
 
+  it("does not re-embed Kiln-generated files as Next runtime assets", () => {
+    const projectDir = createProject({ dependencies: { next: "latest" } });
+    const standaloneDir = join(projectDir, ".next", "standalone");
+    mkdirSync(standaloneDir, { recursive: true });
+    writeFileSync(join(standaloneDir, "server.js"), "server");
+    writeFileSync(join(standaloneDir, "assets.generated.js"), "generated");
+    writeFileSync(join(standaloneDir, "server-entry.js"), "generated");
+
+    const runtimeFiles = createNextAdapter().getRuntimeFiles?.({
+      standaloneDir,
+      distDir: join(projectDir, ".next"),
+      projectDir,
+    });
+
+    expect(runtimeFiles?.map((file) => file.relativePath)).toEqual([
+      "server.js",
+    ]);
+  });
+
   it("generates the default server entry with SSR and static routing support", () => {
     const source = createNextAdapter().generateServerEntry({
       standaloneDir: "/tmp/app/.next/standalone",
