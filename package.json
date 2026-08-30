@@ -18,8 +18,8 @@
     "staged": "vp staged",
     "hooks:setup": "vp config",
     "test": "bun test packages/kiln/tests",
-    "docs:dev": "vp -C apps/docs dev",
-    "docs:build": "vp -C apps/docs build"
+    "docs:dev": "bun --filter docs dev",
+    "docs:build": "bun --filter docs build"
   },
   "devDependencies": {
     "@kiln/config": "workspace:*",
