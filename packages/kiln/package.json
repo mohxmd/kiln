@@ -29,7 +29,9 @@
     "clean": "bun -e \"import { rmSync } from 'node:fs'; rmSync('dist', { recursive: true, force: true })\"",
     "build": "bun run clean && tsc --project tsconfig.json && bun -e \"import { chmodSync } from 'node:fs'; chmodSync('dist/cli.js', 0o755)\"",
     "check-types": "tsc --project tsconfig.json --noEmit",
+    "check-types:test": "tsc --project tsconfig.test.json --noEmit",
     "test": "bun test",
+    "prepack": "bun run build",
     "prepublishOnly": "bun run build"
   },
   "keywords": [

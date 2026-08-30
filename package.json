@@ -11,7 +11,9 @@
   "scripts": {
     "build": "bun --filter kiln-compiler build",
     "check-types": "bun --filter kiln-compiler check-types",
-    "test": "bun test packages/kiln/tests",
+    "check-types:test": "bun --filter kiln-compiler check-types:test",
+    "test": "bun --filter kiln-compiler test",
+    "check": "bun run check-types && bun run check-types:test && bun run test",
     "docs:dev": "bun --filter docs dev",
     "docs:build": "bun --filter docs build"
   }
