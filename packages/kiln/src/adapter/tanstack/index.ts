@@ -31,8 +31,7 @@ function hasTanStackDependency(projectDir: string): boolean {
     };
     return (
       "@tanstack/start" in allDeps ||
-      "@tanstack/react-start" in allDeps ||
-      "@tanstack/router" in allDeps
+      "@tanstack/react-start" in allDeps
     );
   } catch {
     return false;

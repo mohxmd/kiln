@@ -4,7 +4,7 @@
 
 import type { StubModule } from "../types.js";
 
-export const KNOWN_TRANSPILE_PACKAGES: string[] = [];
+export const KNOWN_TRANSPILE_PACKAGES: readonly string[] = [];
 
 export const NEXT_BUILD_DEFINES: readonly string[] = [
   "process.env.TURBOPACK=1",

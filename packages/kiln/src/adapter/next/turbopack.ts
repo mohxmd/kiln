@@ -60,7 +60,7 @@ export function findTurbopackAliases(standaloneNextDir: string): TurbopackAlias[
 
   const nodeModulesDir = join(standaloneNextDir, "node_modules");
   if (existsSync(nodeModulesDir)) {
-    for (const name of readdirSync(nodeModulesDir)) {
+    for (const name of readdirSync(nodeModulesDir).sort()) {
       if (!/-[0-9a-f]{16}$/.test(name)) continue;
       if (seen.has(name)) continue;
       const aliasPath = join(nodeModulesDir, name);

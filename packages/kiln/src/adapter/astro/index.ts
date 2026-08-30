@@ -3,7 +3,7 @@
  * Supports Astro 5+ & 7+ with @astrojs/node standalone output.
  */
 
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import type {
@@ -18,6 +18,23 @@ import { walkDir } from "../../utils/fs.js";
 import { logInfo } from "../../utils/log.js";
 import { toPosixPath } from "../../utils/path.js";
 
+function hasAstroDependency(projectDir: string): boolean {
+  const packagePath = join(projectDir, "package.json");
+  if (!existsSync(packagePath)) return false;
+
+  try {
+    const packageJson = JSON.parse(readFileSync(packagePath, "utf-8"));
+    const allDependencies = {
+      ...packageJson.dependencies,
+      ...packageJson.devDependencies,
+      ...packageJson.peerDependencies,
+    };
+    return "astro" in allDependencies;
+  } catch {
+    return false;
+  }
+}
+
 export function createAstroAdapter(): FrameworkAdapter {
   return {
     framework: "astro",
@@ -25,6 +42,7 @@ export function createAstroAdapter(): FrameworkAdapter {
 
     detect(projectDir: string): boolean {
       return (
+        hasAstroDependency(projectDir) ||
         existsSync(join(projectDir, "astro.config.mjs")) ||
         existsSync(join(projectDir, "astro.config.ts")) ||
         existsSync(join(projectDir, "astro.config.js")) ||
