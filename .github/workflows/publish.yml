@@ -1,9 +1,7 @@
 name: publish
-
 on:
   release:
     types: [published]
-
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -13,31 +11,27 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-
       - name: Setup Node (for NPM registry)
         uses: actions/setup-node@v6
         with:
           node-version: "24.x"
           registry-url: "https://registry.npmjs.org/"
           package-manager-cache: false
-
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
           bun-version: "1.4.0"
-
       - name: Install dependencies
         run: bun install --frozen-lockfile
-
       - name: Build compiler
         run: bun --filter kiln-compiler build
-
       - name: Verify release version
         env:
           RELEASE_TAG: ${{ github.event.release.tag_name }}
         run: |
           bun -e 'const pkg = await Bun.file("packages/kiln/package.json").json(); const tag = process.env.RELEASE_TAG?.replace(/^v/, ""); if (pkg.version !== tag) { throw new Error(`Package version ${pkg.version} does not match release tag ${process.env.RELEASE_TAG}`); }'
-
       - name: Publish to NPM
         run: npm publish --access public
         working-directory: packages/kiln
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
