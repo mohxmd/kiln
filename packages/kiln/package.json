@@ -1,6 +1,6 @@
 {
   "name": "kiln-compiler",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Compile framework apps into native Bun executables.",
   "keywords": [
     "adapter",
